@@ -2,9 +2,9 @@
 
 ![Preview do Sistema](images/preview.gif)
 
-> Controle financeiro pessoal com foco em parcelamentos, contas fixas e carteira de investimentos B3.
+> Aplicação web de controle financeiro pessoal com foco em calculadora de IR e declaração de impostos para investidores pessoa física.
 
-![Java](https://img.shields.io/badge/Java-25-orange?style=flat-square&logo=openjdk)
+![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen?style=flat-square&logo=springboot)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql)
@@ -14,27 +14,29 @@
 
 ## O que é
 
-Uma aplicação web local para quem quer controlar as próprias finanças sem depender de bancos ou serviços pagos. Tudo roda na sua máquina — os dados ficam no seu banco.
+Uma aplicação web local para investidores que precisam apurar IR sobre renda variável, gerar DARFs e organizar a declaração anual do IRPF — sem depender de planilhas. Tudo roda na sua máquina e os dados ficam no seu banco.
 
-**Principais funcionalidades:**
+**Funcionalidades principais:**
 
-- **Cartões de crédito** — cadastre seus cartões com dia de fechamento e vencimento
-- **Compras parceladas** — registre e acompanhe cada parcela com cálculo automático de vencimento por ciclo de fechamento
-- **Pagamentos recorrentes** — contas fixas mensais com checklist de pagamento por mês
-- **Carteira B3** — importe posições em CSV ou XLSX (relatório da B3), com cotação em tempo real via Brapi e cálculo de P&L por ativo
-- **Dashboard** — resumo do mês, projeção de 12 meses, gráficos de evolução
-- **Multi-perfil** — perfis independentes com exportação e importação completa de backup
+- **Calculadora de IR** — apuração mensal por categoria (Swing Trade, Day Trade, FII, Tesouro Direto, BDR/ETF, Ações Int.), com compensação automática de prejuízos acumulados e isentômetro visual para ações
+- **DARF em PDF** — geração do documento pronto para pagamento (código 6015 ou 0977)
+- **Declaração IRPF em PDF** — relatório de bens e direitos + renda variável para auxiliar no preenchimento do programa da Receita
+- **Import CSV da B3** — importe o extrato de operações diretamente do portal da B3
+- **Carteira de investimentos** — posições B3 (Ações, FIIs, BDRs, ETFs, Tesouro Direto) com cotação em tempo real, P&L, proventos e benchmark
+- **Dashboard financeiro** — cartões de crédito, compras parceladas, pagamentos recorrentes
+- **Multi-perfil** — um usuário pode ter vários perfis (ex: família)
+- **10 temas visuais** — 5 dark + 5 light, persistidos no navegador
 
 ---
 
 ## Stack
 
 | Camada | Tecnologias |
-|---|---|
-| Backend | Spring Boot 4, Java 25 (Zulu JDK), Spring Data JPA, Flyway, Apache POI |
+|--------|-------------|
+| Backend | Spring Boot 4.0.5, Java 21 (Zulu JDK), Spring Data JPA, Flyway, PDFBox 3, Apache POI |
 | Frontend | React 18, Vite, Tailwind CSS, TanStack Query, Recharts, Lucide |
 | Banco | PostgreSQL 16 via Docker Compose |
-| Testes | JUnit 5, Mockito, Testcontainers, RestAssured |
+| Testes | JUnit 5, Mockito, Testcontainers |
 
 ---
 
@@ -42,63 +44,37 @@ Uma aplicação web local para quem quer controlar as próprias finanças sem de
 
 ### Pré-requisitos
 
-| Ferramenta | Versão mínima |
-|---|---|
-| [Zulu JDK 25](https://www.azul.com/downloads/) | 25 LTS |
+| Ferramenta | Versão |
+|------------|--------|
+| [Zulu JDK 21](https://www.azul.com/downloads/) | 21 (LTS) |
 | [Maven](https://maven.apache.org/) | 3.9+ |
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Qualquer recente |
 | [Node.js](https://nodejs.org/) | 20+ |
 
-### Início rápido (Windows)
+### Passo a passo
 
-```bash
-# 1. Clone o repositório
-git clone <url-do-repositorio>
-cd matheusFinance
-
-# 2. Suba tudo com um comando
-start.bat
-```
-
-O script `start.bat` inicia o PostgreSQL, compila e sobe o backend e o frontend automaticamente.
-
-Acesse em: **http://localhost:5173**
-
-### Início rápido (Linux / Mac)
-
-```bash
-chmod +x start.sh
-./start.sh
-```
-
----
-
-## Configuração manual passo a passo
-
-### 1. Banco de dados
+**1. Banco de dados**
 
 ```bash
 docker compose up postgres -d
 ```
 
-O PostgreSQL sobe na porta **5435** (evita conflito com instâncias locais na 5432). O Flyway cria todas as tabelas automaticamente na primeira inicialização.
+O PostgreSQL sobe na porta **5435**. O Flyway cria todas as tabelas automaticamente na primeira inicialização.
 
-### 2. Backend
+**2. Backend**
 
 ```bash
 cd backend
 
-# Configure o token da Brapi (opcional — necessário para cotações em tempo real)
+# Configure as variáveis de ambiente (token Brapi, JWT secret, etc.)
 cp .env.example .env
-# Edite .env e preencha BRAPI_TOKEN com seu token em https://brapi.dev
 
-# Inicie o servidor
-JAVA_HOME="C:/Program Files/Java/zulu-jdk-25" mvn spring-boot:run
+JAVA_HOME="C:/Program Files/Java/zulu-jdk-21" mvn spring-boot:run
 ```
 
-O backend sobe em **http://localhost:8085**.
+Backend em **http://localhost:8085**.
 
-### 3. Frontend
+**3. Frontend**
 
 ```bash
 cd frontend
@@ -106,14 +82,13 @@ npm install
 npm run dev
 ```
 
-O frontend sobe em **http://localhost:5173**.
+Frontend em **http://localhost:5173** (também acessível na rede local para mobile).
 
-### 4. Primeiro acesso
+**4. Primeiro acesso**
 
 1. Acesse **http://localhost:5173**
-2. Vá em **Perfis** no menu lateral
-3. Crie um perfil e clique em **Selecionar**
-4. Pronto — comece a usar
+2. Crie uma conta em **Registrar**
+3. Comece registrando suas operações de compra e venda em **IR / DARF**
 
 ---
 
@@ -121,52 +96,61 @@ O frontend sobe em **http://localhost:5173**.
 
 ```
 matheusFinance/
-├── backend/                        # Spring Boot API
-│   ├── src/main/java/com/matheusfinance/
-│   │   ├── perfil/                 # Perfis e backup (export/import)
-│   │   ├── cartao/                 # Cartões de crédito
-│   │   ├── compra/                 # Compras parceladas + cálculo de vencimento
-│   │   ├── recorrente/             # Pagamentos fixos + checklist mensal
-│   │   ├── investimento/           # Posições B3, cotações Brapi, P&L
-│   │   ├── dashboard/              # Agregações para gráficos
-│   │   └── shared/                 # Config, segurança, exceções globais
-│   └── src/main/resources/
-│       └── db/migration/           # Migrations Flyway (V1 → V7)
+├── backend/
+│   └── src/main/java/com/matheusfinances/
+│       ├── auth/           # Autenticação e-mail + senha, JWT, multi-perfil
+│       ├── perfil/         # Perfis por usuário
+│       ├── cartao/         # Cartões de crédito
+│       ├── compra/         # Compras parceladas + cálculo de vencimento
+│       ├── recorrente/     # Pagamentos fixos + checklist mensal
+│       ├── investimento/   # Posições B3, cotações, P&L, proventos
+│       ├── ir/             # Calculadora IR, apuração, DARF PDF, declaração IRPF
+│       ├── meta/           # Metas de economia
+│       ├── patrimonio/     # Histórico de patrimônio
+│       ├── push/           # Notificações push (VAPID)
+│       └── shared/         # Config, segurança, exceções globais
 │
-├── frontend/                       # React + Vite
+├── frontend/
 │   └── src/
-│       ├── api/                    # Camada de chamadas HTTP por domínio
-│       ├── components/ui/          # Design system (Card, Button, Input, Badge…)
-│       ├── context/                # ProfileContext, ThemeProvider
-│       └── pages/                  # Dashboard, Perfis, Investimentos
+│       ├── api/            # Camada HTTP por domínio
+│       ├── components/     # Design system + layout (AppShell, Sidebar)
+│       ├── context/        # AuthContext, ThemeContext, ProfileContext
+│       └── pages/          # Dashboard, IR, Investimentos, Calculadoras, Metas, Configurações
 │
-├── docker-compose.yml
-├── start.bat / start.sh            # Scripts de startup
-└── stop.bat / stop.sh
+└── docker-compose.yml
 ```
+
+---
+
+## Calculadora de IR
+
+### Categorias suportadas
+
+| Categoria | Alíquota | Isenção |
+|-----------|----------|---------|
+| Swing Trade — Ações | 15% | Vendas ≤ R$ 20.000/mês |
+| Day Trade — Ações | 20% | Sem isenção |
+| FII | 20% | Sem isenção |
+| Tesouro Direto | 15% a 22,5% (regressivo) | Sem isenção |
+| BDR / ETF | 15% / 20% | — |
+| Ações internacionais | 15% / 20% | — |
+
+### Fluxo de uso
+
+1. Registre operações manualmente ou importe o CSV exportado pelo portal B3
+2. Acesse **Apuração IR** e selecione o ano
+3. O sistema calcula o imposto por mês/categoria, descontando prejuízos acumulados
+4. Clique em **Gerar DARF** para baixar o PDF pronto para pagamento
 
 ---
 
 ## Importação de posições B3
 
-1. Acesse o portal **CEI** ou **B3** e exporte seu extrato de posições
-2. Na tela **Investimentos**, clique em **Importar posições**
-3. Selecione o arquivo `.csv` ou `.xlsx` exportado pela B3
+1. Exporte seu extrato de posições no portal da B3 (`.csv` ou `.xlsx`)
+2. Em **Investimentos → Importar**, selecione o arquivo
+3. O sistema detecta o formato automaticamente e atualiza a carteira
 
-O sistema detecta automaticamente o formato. Após a importação, clique em **Atualizar Preços** para buscar as cotações atuais e calcular o P&L de cada ativo.
-
----
-
-## Backup e restauração de perfil
-
-Cada perfil pode ser exportado como um único arquivo `.json` contendo todo o histórico: cartões, compras, parcelas, recorrentes e investimentos.
-
-```
-Perfis → ícone de download no perfil → salva perfil-nome-2025-04-23.json
-Perfis → Importar Perfil → seleciona o .json → perfil restaurado
-```
-
-Útil para migrar de máquina, manter backups manuais ou compartilhar dados entre ambientes.
+Cotações são atualizadas automaticamente a cada 15 minutos durante o pregão (via Brapi para ações/FIIs e API do Tesouro Nacional para títulos).
 
 ---
 
@@ -175,40 +159,40 @@ Perfis → Importar Perfil → seleciona o .json → perfil restaurado
 ```bash
 cd backend
 
-# Todos os testes (unit + integração)
+# Todos os testes (unit + integração com Testcontainers)
 mvn test
 
-# Teste específico
+# Testes específicos
 mvn test -Dtest=ParcelamentoCalculatorTest
 mvn test -Dtest=PerfilServiceTest
 ```
 
-Os testes de integração usam **Testcontainers** — um PostgreSQL temporário é criado e destruído automaticamente. Não é necessário ter o Docker Compose rodando.
+Os testes de integração usam **Testcontainers** — um PostgreSQL temporário sobe e desce automaticamente. Docker Desktop precisa estar rodando.
 
 ---
 
 ## Variáveis de ambiente
 
-| Variável | Padrão | Descrição |
-|---|---|---|
-| `BRAPI_TOKEN` | *(vazio)* | Token da API Brapi para cotações em tempo real |
-| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5435/matheusfinance` | URL do banco |
-| `SPRING_DATASOURCE_USERNAME` | `finance_user` | Usuário do banco |
-| `SPRING_DATASOURCE_PASSWORD` | `finance_pass` | Senha do banco |
+Configure em `backend/.env` a partir de `backend/.env.example`:
 
-Crie `backend/.env` a partir de `backend/.env.example` para configurar localmente sem alterar o `application.yml`.
+| Variável | Descrição |
+|----------|-----------|
+| `BRAPI_TOKEN` | Token da [Brapi](https://brapi.dev) para cotações em tempo real |
+| `JWT_SECRET` | Segredo JWT (mínimo 32 caracteres) |
+| `SPRING_DATASOURCE_URL` | URL do banco (padrão: `jdbc:postgresql://localhost:5435/matheusfinance`) |
+| `SPRING_DATASOURCE_USERNAME` | Usuário do banco |
+| `SPRING_DATASOURCE_PASSWORD` | Senha do banco |
 
 ---
 
 ## Solução de problemas
 
 | Sintoma | Causa provável | Solução |
-|---|---|---|
+|---------|----------------|---------|
 | Frontend não carrega dados | Backend fora do ar | Verifique se o Spring Boot subiu em `localhost:8085` |
-| `senha falhou para finance_user` | PostgreSQL não está rodando | `docker compose up postgres -d` |
-| `Port 8085 already in use` | Outra instância do backend rodando | Encerre o processo anterior |
+| Erro de conexão com banco | PostgreSQL não está rodando | `docker compose up postgres -d` |
+| `Port 8085 already in use` | Outra instância rodando | Encerre o processo anterior |
 | Cotações não atualizam | `BRAPI_TOKEN` não configurado | Preencha `BRAPI_TOKEN` no `backend/.env` |
-| Parcelas com datas erradas | `diaFechamento` incorreto no cartão | Revise o cadastro do cartão |
 
 ---
 
