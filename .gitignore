@@ -36,3 +36,7 @@ logs/
 
 # Outros arquivos temporários
 b3-import/
+
+# Documentação local apenas
+ideia.md
+instrucoes.md
