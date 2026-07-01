@@ -1,0 +1,1 @@
+ALTER TABLE perfis ADD COLUMN senha_hash VARCHAR(100);

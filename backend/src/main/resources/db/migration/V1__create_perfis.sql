@@ -1,0 +1,5 @@
+CREATE TABLE perfis (
+    id         BIGSERIAL PRIMARY KEY,
+    nome       VARCHAR(100) NOT NULL,
+    criado_em  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

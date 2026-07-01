@@ -1,0 +1,38 @@
+# Java
+target/
+*.class
+*.jar
+
+# Maven wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env
+.env
+!.env.example
+backend/src/main/resources/application-local.yml
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
+
+
+# Scripts de startup (logs e PIDs gerados em runtime)
+logs/
+
+# Outros arquivos temporários
+b3-import/

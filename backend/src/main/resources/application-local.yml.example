@@ -1,0 +1,5 @@
+# Copie para application-local.yml e preencha com seus valores locais.
+# Este arquivo é gitignored — nunca commite application-local.yml.
+app:
+  brapi:
+    token: "SEU_TOKEN_BRAPI_AQUI"
