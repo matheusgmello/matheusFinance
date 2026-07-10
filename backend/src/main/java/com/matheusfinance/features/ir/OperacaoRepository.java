@@ -22,8 +22,8 @@ public interface OperacaoRepository extends JpaRepository<Operacao, Long> {
         SELECT COALESCE(SUM(o.quantidade * o.preco), 0)
         FROM Operacao o
         WHERE o.perfilId = :perfilId
-          AND o.tipo = com.matheusfinance.ir.TipoOperacao.VENDA
-          AND o.assetType = com.matheusfinance.ir.AssetType.STOCK
+          AND o.tipo = com.matheusfinance.features.ir.TipoOperacao.VENDA
+          AND o.assetType = com.matheusfinance.features.ir.AssetType.STOCK
           AND o.dayTrade = false
           AND FUNCTION('TO_CHAR', o.data, 'YYYY-MM') = :mes
     """)
