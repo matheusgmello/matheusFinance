@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 import { Profile } from '../../core/types'
 
 interface ProfileContextValue {
@@ -24,4 +24,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ProfileContext.Provider>
   )
+}
+
+export function useProfile() {
+  const ctx = useContext(ProfileContext)
+  if (!ctx) throw new Error('useProfile must be used within ProfileProvider')
+  return ctx
 }
