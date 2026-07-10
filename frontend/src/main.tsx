@@ -3,9 +3,9 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
-import { ProfileProvider } from './context/ProfileContext'
-import { ThemeProvider } from './context/ThemeContext'
-import { AuthProvider } from './context/AuthContext'
+import { ProfileProvider } from './shared/context/ProfileContext'
+import { ThemeProvider } from './shared/context/ThemeContext'
+import { AuthProvider } from './shared/context/AuthContext'
 import './index.css'
 
 const queryClient = new QueryClient({

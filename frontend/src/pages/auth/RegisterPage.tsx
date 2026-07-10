@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { authApi } from '../../api/auth'
-import { useAuth } from '../../context/AuthContext'
-import { useProfile } from '../../context/ProfileContext'
-import { setupAxiosInterceptors } from '../../api/axios'
+import { authApi } from '../../domains/auth/api'
+import { useAuth } from '../../shared/context/AuthContext'
+import { useProfile } from '../../shared/context/ProfileContext'
+import { setupAxiosInterceptors } from '../../core/api/axios'
 import { UserPlus, Mail, Lock, User } from 'lucide-react'
 
 const INPUT_CLS = `w-full px-10 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl

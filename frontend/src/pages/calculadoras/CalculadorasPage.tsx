@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { Card } from '../../components/ui/Card'
-import { useTheme } from '../../context/ThemeContext'
+import { Card } from '../../shared/components/ui/Card'
+import { useTheme } from '../../shared/context/ThemeContext'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

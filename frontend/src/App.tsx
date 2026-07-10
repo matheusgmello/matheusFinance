@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import AppShell from './components/layout/AppShell'
+import { AppShell } from './shared/components/layout'
+import { ErrorBoundary } from './shared/components/ErrorBoundary'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ConfiguracoesPage from './pages/configuracoes/ConfiguracoesPage'
 import InvestimentosPage from './pages/investimentos/InvestimentosPage'
@@ -8,7 +9,6 @@ import IrPage from './pages/ir/IrPage'
 import CalculadorasPage from './pages/calculadoras/CalculadorasPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
-import { ErrorBoundary } from './components/ErrorBoundary'
 
 export default function App() {
   return (

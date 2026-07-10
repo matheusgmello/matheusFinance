@@ -3,12 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   irApi, TipoOperacao, AssetType, Categoria,
   OperacaoRequest, ResumoPorCategoria, ApuracaoMensal, Isentometro,
-} from '../../api/ir'
-import { useProfile } from '../../context/ProfileContext'
-import { Card } from '../../components/ui/Card'
-import { Button } from '../../components/ui/Button'
-import { Input } from '../../components/ui/Input'
-import { Badge } from '../../components/ui/Badge'
+} from '../../domains/ir/api'
+import { useProfile } from '../../shared/context/ProfileContext'
+import { Card } from '../../shared/components/ui/Card'
+import { Button } from '../../shared/components/ui/Button'
+import { Input } from '../../shared/components/ui/Input'
+import { Badge } from '../../shared/components/ui/Badge'
 import { Plus, Trash2, AlertCircle, CheckCircle2, FileText, Upload, Download, Filter } from 'lucide-react'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

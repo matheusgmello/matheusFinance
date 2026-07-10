@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { perfisApi, Perfil } from '../../api/perfis'
-import { useProfile } from '../../context/ProfileContext'
-import { useAuth } from '../../context/AuthContext'
-import { Button } from '../../components/ui/Button'
-import { Input } from '../../components/ui/Input'
-import { Badge } from '../../components/ui/Badge'
+import { perfisApi, Perfil } from '../../domains/configuracao/api'
+import { useProfile } from '../../shared/context/ProfileContext'
+import { useAuth } from '../../shared/context/AuthContext'
+import { Button } from '../../shared/components/ui/Button'
+import { Input } from '../../shared/components/ui/Input'
+import { Badge } from '../../shared/components/ui/Badge'
 import {
   Check, Trash2, Plus, WifiOff, Download, Upload,
   AlertTriangle, X, ShieldAlert, Bell, BellOff,
 } from 'lucide-react'
-import { pushApi } from '../../api/push'
+import { pushApi } from '../../domains/configuracao/api'
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (

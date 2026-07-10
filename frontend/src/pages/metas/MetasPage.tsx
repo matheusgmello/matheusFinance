@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { metasApi, Meta, MetaRequest } from '../../api/metas'
-import { useProfile } from '../../context/ProfileContext'
-import { Card } from '../../components/ui/Card'
-import { Button } from '../../components/ui/Button'
-import { Input } from '../../components/ui/Input'
+import { metasApi, Meta, MetaRequest } from '../../domains/meta/api'
+import { useProfile } from '../../shared/context/ProfileContext'
+import { Card } from '../../shared/components/ui/Card'
+import { Button } from '../../shared/components/ui/Button'
+import { Input } from '../../shared/components/ui/Input'
 import { Target, Plus, X, Trash2, PlusCircle } from 'lucide-react'
 
 const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
