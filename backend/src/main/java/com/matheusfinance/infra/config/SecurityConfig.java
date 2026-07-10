@@ -53,11 +53,10 @@ public class SecurityConfig {
         List<String> origins = appProperties.cors() != null && !appProperties.cors().allowedOrigins().isEmpty()
             ? appProperties.cors().allowedOrigins()
             : List.of("*");
-        // allowedOriginPatterns suporta wildcard "*" junto com allowCredentials=true
         config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
