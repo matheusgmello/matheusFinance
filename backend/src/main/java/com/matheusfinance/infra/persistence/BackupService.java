@@ -1,7 +1,5 @@
 package com.matheusfinance.infra.persistence;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.matheusfinance.features.perfil.Perfil;
 import com.matheusfinance.features.perfil.PerfilExportImportService;
 import com.matheusfinance.features.perfil.PerfilRepository;
@@ -10,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,6 +27,7 @@ public class BackupService {
 
     private final PerfilRepository perfilRepository;
     private final PerfilExportImportService exportImportService;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.backup.dir:./backups}")
     private String backupDir;
@@ -48,16 +49,12 @@ public class BackupService {
             return;
         }
 
-        ObjectMapper mapper = new ObjectMapper()
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .findAndRegisterModules();
-
         for (Perfil perfil : perfis) {
             try {
                 var backup = exportImportService.exportar(perfil.getId());
                 String nomeArquivo = "perfil-" + perfil.getId() + "-" + sanitize(perfil.getNome()) + ".json";
                 Path arquivo = pasta.resolve(nomeArquivo);
-                mapper.writeValue(arquivo.toFile(), backup);
+                objectMapper.writer(SerializationFeature.INDENT_OUTPUT).writeValue(arquivo.toFile(), backup);
                 log.info("Backup salvo: {}", arquivo);
             } catch (Exception e) {
                 log.error("Falha ao fazer backup do perfil {}", perfil.getId(), e);

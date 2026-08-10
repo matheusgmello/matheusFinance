@@ -149,12 +149,15 @@ Os testes de integração usam **PostgreSQL real** em `localhost:5435`, banco `m
 Cobertura atual:
 - `ParcelamentoCalculatorTest` — regra de fechamento, meses curtos, ano bissexto, virada de ano
 - `PerfilExportImportServiceTest` — round-trip export/import de todas as entidades + compatibilidade com backup versão "1"
+- `BackupServiceTest` — dispara o backup agendado, lê o JSON gravado em disco e restaura via `PerfilExportImportService`, fechando o ciclo que `PerfilExportImportServiceTest` sozinho não cobre
 
 Ao escrever testes de integração: `@AutoConfigureMockMvc` foi removido no Spring Boot 4, e RestAssured 5.5.0 lança NPE no Java 21 via Groovy (as duas dependências foram removidas do `pom.xml`). Usar `RestTemplate` com `@LocalServerPort`.
 
 ### Export / Import e Backup
 
 `PerfilExportImportService` serializa perfil em JSON. `BackupService` grava backup diário por perfil em `./backups`, retenção 30 dias.
+
+**`BackupService` usa o `ObjectMapper` (Jackson 3, `tools.jackson.databind`) injetado pelo Spring, não uma instância própria.** Uma instância própria com Jackson 2 (`com.fasterxml.jackson.databind`) já causou uma falha silenciosa real: sem `jackson-datatype-jsr310` no classpath, `OffsetDateTime` não serializa, a exceção era capturada e logada por perfil, e o job terminava com "Backup automático concluído" mesmo com todo backup do dia corrompido. `BackupServiceTest` existe para pegar essa classe de regressão de novo.
 
 Cobre cartões, compras com parcelas, recorrentes com checklist, categorias, orçamentos, receitas e metas. Coberto por `PerfilExportImportServiceTest`.
 
