@@ -1,6 +1,14 @@
 package com.matheusfinance.features.perfil;
 
 import com.matheusfinance.features.cartao.Cartao;
+import com.matheusfinance.features.categoria.Categoria;
+import com.matheusfinance.features.categoria.CategoriaRepository;
+import com.matheusfinance.features.meta.Meta;
+import com.matheusfinance.features.meta.MetaRepository;
+import com.matheusfinance.features.orcamento.Orcamento;
+import com.matheusfinance.features.orcamento.OrcamentoRepository;
+import com.matheusfinance.features.receita.Receita;
+import com.matheusfinance.features.receita.ReceitaRepository;
 import com.matheusfinance.features.cartao.CartaoRepository;
 import com.matheusfinance.features.compra.CompraParcelada;
 import com.matheusfinance.features.compra.CompraRepository;
@@ -30,6 +38,10 @@ public class PerfilExportImportService {
     private final CompraRepository compraRepository;
     private final RecorrenteRepository recorrenteRepository;
     private final ChecklistRepository checklistRepository;
+    private final CategoriaRepository categoriaRepository;
+    private final OrcamentoRepository orcamentoRepository;
+    private final ReceitaRepository receitaRepository;
+    private final MetaRepository metaRepository;
 
     // ── Export ────────────────────────────────────────────────────────────────
 
@@ -78,9 +90,31 @@ public class PerfilExportImportService {
                     r.getCategoria(), r.getAtivo(), clDatas);
         }).toList();
 
+        List<PerfilBackupDTO.CategoriaData> categoriaDatas =
+                categoriaRepository.findAllByPerfilIdOrderByNome(perfilId).stream()
+                        .map(c -> new PerfilBackupDTO.CategoriaData(c.getNome(), c.getCor()))
+                        .toList();
+
+        List<PerfilBackupDTO.OrcamentoData> orcamentoDatas =
+                orcamentoRepository.findAllByPerfilId(perfilId).stream()
+                        .map(o -> new PerfilBackupDTO.OrcamentoData(o.getCategoria(), o.getValorLimite()))
+                        .toList();
+
+        List<PerfilBackupDTO.ReceitaData> receitaDatas =
+                receitaRepository.findAllByPerfilId(perfilId).stream()
+                        .map(r -> new PerfilBackupDTO.ReceitaData(r.getAno(), r.getMes(), r.getValor()))
+                        .toList();
+
+        List<PerfilBackupDTO.MetaData> metaDatas =
+                metaRepository.findAllByPerfilIdOrderByCriadoEmAsc(perfilId).stream()
+                        .map(m -> new PerfilBackupDTO.MetaData(
+                                m.getNome(), m.getValorAlvo(), m.getValorAtual(), m.getPrazo()))
+                        .toList();
+
         return new PerfilBackupDTO.Backup(
-                "1", OffsetDateTime.now(), perfil.getNome(),
-                cartaoDatas, compraDatas, recorrenteDatas);
+                "2", OffsetDateTime.now(), perfil.getNome(),
+                cartaoDatas, compraDatas, recorrenteDatas,
+                categoriaDatas, orcamentoDatas, receitaDatas, metaDatas);
     }
 
     // ── Import ────────────────────────────────────────────────────────────────
@@ -144,6 +178,37 @@ public class PerfilExportImportService {
             }
         }
 
+        for (var cd : nvl(backup.categorias())) {
+            categoriaRepository.save(Categoria.builder()
+                    .perfil(perfil).nome(cd.nome()).cor(cd.cor())
+                    .build());
+        }
+
+        for (var od : nvl(backup.orcamentos())) {
+            orcamentoRepository.save(Orcamento.builder()
+                    .perfil(perfil).categoria(od.categoria()).valorLimite(od.valorLimite())
+                    .build());
+        }
+
+        for (var rd : nvl(backup.receitas())) {
+            receitaRepository.save(Receita.builder()
+                    .perfil(perfil).ano(rd.ano()).mes(rd.mes()).valor(rd.valor())
+                    .build());
+        }
+
+        for (var md : nvl(backup.metas())) {
+            metaRepository.save(Meta.builder()
+                    .perfil(perfil).nome(md.nome())
+                    .valorAlvo(md.valorAlvo()).valorAtual(md.valorAtual())
+                    .prazo(md.prazo())
+                    .build());
+        }
+
         return perfil.getId();
+    }
+
+    // Backups na versão "1" não têm esses campos — Jackson os desserializa como null
+    private static <T> List<T> nvl(List<T> list) {
+        return list == null ? List.of() : list;
     }
 }

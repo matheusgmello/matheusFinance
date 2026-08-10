@@ -136,17 +136,31 @@ Em Spring Boot 4 o autoconfigure do Flyway está em `spring-boot-starter-flyway`
 
 ### Testes
 
-**Não existem testes.** O workflow em `.github/workflows/ci.yml` roda `mvn test`, que passa vazio — o badge verde não verifica nada.
+```bash
+docker compose up postgres -d
+docker exec matheusfinance-db createdb -U finance_user matheusfinance_test   # uma vez só
+mvn test
+```
 
-Prioridade declarada do projeto é integridade de dados. Quando houver testes, começar por: `ParcelamentoCalculator` (lógica de datas) e o ciclo export → import de perfil.
+Os testes de integração usam **PostgreSQL real** em `localhost:5435`, banco `matheusfinance_test` — o mesmo arranjo que o `.github/workflows/ci.yml` já provisiona. `application-test.yml` aceita override por `SPRING_DATASOURCE_URL`.
 
-Ao escrever testes de integração: `@AutoConfigureMockMvc` foi removido no Spring Boot 4, e RestAssured 5.5.0 lança NPE no Java 21 via Groovy. Usar `RestTemplate` com `@LocalServerPort`.
+**Testcontainers foi removido.** O `docker-java` embutido negocia a API 1.32 e o Docker 29+ recusa (`client version 1.32 is too old`), sem override que funcione via `DOCKER_API_VERSION` ou `api.version`.
+
+Cobertura atual:
+- `ParcelamentoCalculatorTest` — regra de fechamento, meses curtos, ano bissexto, virada de ano
+- `PerfilExportImportServiceTest` — round-trip export/import de todas as entidades + compatibilidade com backup versão "1"
+
+Ao escrever testes de integração: `@AutoConfigureMockMvc` foi removido no Spring Boot 4, e RestAssured 5.5.0 lança NPE no Java 21 via Groovy (as duas dependências foram removidas do `pom.xml`). Usar `RestTemplate` com `@LocalServerPort`.
 
 ### Export / Import e Backup
 
 `PerfilExportImportService` serializa perfil em JSON. `BackupService` grava backup diário por perfil em `./backups`, retenção 30 dias.
 
-**Limitação conhecida:** o backup cobre cartões, compras com parcelas e recorrentes com checklist. **Não cobre orçamentos, receitas, categorias nem metas** — exportar e reimportar perde esses dados silenciosamente.
+Cobre cartões, compras com parcelas, recorrentes com checklist, categorias, orçamentos, receitas e metas. Coberto por `PerfilExportImportServiceTest`.
+
+**Ao adicionar uma entidade nova por perfil, ela precisa entrar no backup** — em `PerfilBackupDTO.Backup`, no export e no import. O teste de round-trip falha se você esquecer, desde que uma asserção seja adicionada junto.
+
+Formato na versão `"2"`. Backups na `"1"` não têm categorias, orçamentos, receitas e metas; o import trata esses campos nulos como lista vazia.
 
 ---
 

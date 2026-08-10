@@ -13,7 +13,11 @@ public class PerfilBackupDTO {
             String perfilNome,
             List<CartaoData> cartoes,
             List<CompraData> compras,
-            List<RecorrenteData> recorrentes
+            List<RecorrenteData> recorrentes,
+            List<CategoriaData> categorias,
+            List<OrcamentoData> orcamentos,
+            List<ReceitaData> receitas,
+            List<MetaData> metas
     ) {}
 
     public record CartaoData(
@@ -54,5 +58,28 @@ public class PerfilBackupDTO {
             int mes,
             boolean pago,
             OffsetDateTime pagoEm
+    ) {}
+
+    public record CategoriaData(
+            String nome,
+            String cor
+    ) {}
+
+    public record OrcamentoData(
+            String categoria,
+            BigDecimal valorLimite
+    ) {}
+
+    public record ReceitaData(
+            int ano,
+            int mes,
+            BigDecimal valor
+    ) {}
+
+    public record MetaData(
+            String nome,
+            BigDecimal valorAlvo,
+            BigDecimal valorAtual,
+            LocalDate prazo
     ) {}
 }
