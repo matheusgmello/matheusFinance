@@ -12,8 +12,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [activeProfile, setActiveProfile] = useState<Profile | null>(() => {
     const stored = localStorage.getItem('activeProfile')
     if (stored) return JSON.parse(stored)
-    // TEMP: admin default pra testes
-    return { id: 1, nome: 'Admin', criadoEm: new Date().toISOString() }
+    return null
   })
 
   useEffect(() => {

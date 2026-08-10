@@ -13,8 +13,7 @@ public class PerfilBackupDTO {
             String perfilNome,
             List<CartaoData> cartoes,
             List<CompraData> compras,
-            List<RecorrenteData> recorrentes,
-            List<InvestimentoData> investimentos
+            List<RecorrenteData> recorrentes
     ) {}
 
     public record CartaoData(
@@ -55,19 +54,5 @@ public class PerfilBackupDTO {
             int mes,
             boolean pago,
             OffsetDateTime pagoEm
-    ) {}
-
-    public record InvestimentoData(
-            String ticker,
-            String productName,
-            String type,
-            BigDecimal quantity,
-            BigDecimal averagePrice,
-            BigDecimal currentPrice,
-            BigDecimal totalValue,
-            String institution,
-            LocalDate maturityDate,
-            String indexer,
-            LocalDate referenceDate
     ) {}
 }

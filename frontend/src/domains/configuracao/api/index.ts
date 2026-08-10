@@ -1,6 +1,8 @@
 import { api } from '../../../core/api/axios'
 import { Profile } from '../../../core/types'
 
+export type { Profile as Perfil }
+
 // Perfis
 export const perfisApi = {
   listar: () => api.get<Profile[]>('/api/perfis').then(r => r.data),

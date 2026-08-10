@@ -5,9 +5,6 @@ import com.matheusfinance.features.cartao.CartaoRepository;
 import com.matheusfinance.features.compra.CompraParcelada;
 import com.matheusfinance.features.compra.CompraRepository;
 import com.matheusfinance.features.compra.Parcela;
-import com.matheusfinance.features.investimento.InvestmentPosition;
-import com.matheusfinance.features.investimento.InvestmentPositionRepository;
-import com.matheusfinance.features.investimento.InvestmentType;
 import com.matheusfinance.features.recorrente.ChecklistRecorrente;
 import com.matheusfinance.features.recorrente.ChecklistRepository;
 import com.matheusfinance.features.recorrente.PagamentoRecorrente;
@@ -33,7 +30,6 @@ public class PerfilExportImportService {
     private final CompraRepository compraRepository;
     private final RecorrenteRepository recorrenteRepository;
     private final ChecklistRepository checklistRepository;
-    private final InvestmentPositionRepository investmentPositionRepository;
 
     // ── Export ────────────────────────────────────────────────────────────────
 
@@ -51,8 +47,6 @@ public class PerfilExportImportService {
         List<CompraParcelada> compras = compraRepository.findAllByPerfilIdWithParcelas(perfilId);
         List<PagamentoRecorrente> recorrentes = recorrenteRepository.findAllByPerfilId(perfilId);
         List<ChecklistRecorrente> todosChecklist = checklistRepository.findAllByPerfilId(perfilId);
-        List<InvestmentPosition> investimentos =
-                investmentPositionRepository.findAllByPerfilIdOrderByTypeAscTickerAsc(perfilId);
 
         Map<Long, List<ChecklistRecorrente>> checklistPorRecorrente = todosChecklist.stream()
                 .collect(Collectors.groupingBy(cl -> cl.getRecorrente().getId()));
@@ -84,17 +78,9 @@ public class PerfilExportImportService {
                     r.getCategoria(), r.getAtivo(), clDatas);
         }).toList();
 
-        List<PerfilBackupDTO.InvestimentoData> investimentoDatas = investimentos.stream()
-                .map(i -> new PerfilBackupDTO.InvestimentoData(
-                        i.getTicker(), i.getProductName(), i.getType().name(),
-                        i.getQuantity(), i.getAveragePrice(), i.getCurrentPrice(),
-                        i.getTotalValue(), i.getInstitution(), i.getMaturityDate(),
-                        i.getIndexer(), i.getReferenceDate()))
-                .toList();
-
         return new PerfilBackupDTO.Backup(
                 "1", OffsetDateTime.now(), perfil.getNome(),
-                cartaoDatas, compraDatas, recorrenteDatas, investimentoDatas);
+                cartaoDatas, compraDatas, recorrenteDatas);
     }
 
     // ── Import ────────────────────────────────────────────────────────────────
@@ -154,21 +140,6 @@ public class PerfilExportImportService {
                         .recorrente(recorrente).perfil(perfil)
                         .ano(cl.ano()).mes(cl.mes())
                         .pago(cl.pago()).pagoEm(cl.pagoEm())
-                        .build());
-            }
-        }
-
-        // Investimentos
-        for (var id : backup.investimentos()) {
-            if (!investmentPositionRepository.existsByPerfilIdAndTickerAndReferenceDate(
-                    perfil.getId(), id.ticker(), id.referenceDate())) {
-                investmentPositionRepository.save(InvestmentPosition.builder()
-                        .perfil(perfil).ticker(id.ticker()).productName(id.productName())
-                        .type(InvestmentType.valueOf(id.type()))
-                        .quantity(id.quantity()).averagePrice(id.averagePrice())
-                        .currentPrice(id.currentPrice()).totalValue(id.totalValue())
-                        .institution(id.institution()).maturityDate(id.maturityDate())
-                        .indexer(id.indexer()).referenceDate(id.referenceDate())
                         .build());
             }
         }

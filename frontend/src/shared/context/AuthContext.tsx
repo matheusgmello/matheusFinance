@@ -21,8 +21,7 @@ function loadFromStorage(): AuthState {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw)
   } catch {}
-  // TEMP: admin default pra testes
-  return { token: 'fake-admin-token', perfilId: 1, perfilNome: 'Admin' }
+  return { token: null, perfilId: null, perfilNome: null }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

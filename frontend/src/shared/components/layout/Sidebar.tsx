@@ -1,9 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, TrendingUp, Bell, Target, LogOut, Settings, Receipt, Calculator } from 'lucide-react'
+import { LayoutDashboard, Bell, Target, LogOut, Settings, Calculator } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useProfile } from '../../context/ProfileContext'
 import { useAuth } from '../../context/AuthContext'
-import { alertasApi, alertasPrecoApi } from '../../../domains/alertas/api'
+import { alertasApi } from '../../../domains/alertas/api'
 
 interface SidebarProps {
   open: boolean
@@ -29,21 +29,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     refetchInterval: 5 * 60 * 1000,
   })
 
-  const { data: alertasPreco = [] } = useQuery({
-    queryKey: ['alertas-preco-disparados', activeProfile?.id],
-    queryFn: alertasPrecoApi.disparados,
-    enabled: !!activeProfile,
-    refetchInterval: 60_000,
-  })
-
   const totalAlertas = vencimentos?.totalItens ?? 0
-  const totalAlertasPreco = alertasPreco.length
 
   const navItems = [
     { to: '/',              icon: LayoutDashboard, label: 'Dashboard',     badge: totalAlertas },
-    { to: '/investimentos', icon: TrendingUp,      label: 'Investimentos', badge: totalAlertasPreco },
     { to: '/metas',         icon: Target,          label: 'Metas',         badge: 0 },
-    { to: '/ir',            icon: Receipt,         label: 'IR / DARF',     badge: 0 },
     { to: '/calculadoras',  icon: Calculator,      label: 'Calculadoras',  badge: 0 },
     { to: '/configuracoes', icon: Settings,        label: 'Configurações', badge: 0 },
   ]
