@@ -118,11 +118,17 @@ Multi-perfil é mantido deliberadamente mesmo com um único usuário: `perfilId`
 
 ### Import de Fatura
 
-Entrada de dados é **CSV de fatura** exportado do banco. Nubank e Itaú exportam CSV; o Itaú deixou de oferecer OFX para fatura de cartão.
+Entrada de dados é **CSV de fatura** exportado do banco. Nubank e Itaú exportam CSV; o Itaú deixou de oferecer OFX para fatura de cartão. Nubank implementado (`NubankFaturaParser`); Itaú fica para quando houver arquivo real para testar o mapeamento de colunas.
+
+`POST /api/fatura/importar?cartaoId=X&ano=Y&mes=Z` (multipart, campo `arquivo`). Formato do Nubank: colunas `date,title,amount`, valor com vírgula decimal entre aspas, negativo (`"- 123,45"`) para pagamento/estorno — essas linhas são descartadas no parser, só valor positivo vira lançamento.
 
 **Idempotência é por fatura, não por transação:** a unidade de import é `(cartão, mês de referência)`. Reimportar substitui o conteúdo daquele mês inteiro. Isso evita dedup frágil por hash de `data + valor + descrição`, que descartaria compras legitimamente idênticas.
 
-O modelo de transação deve permanecer **agnóstico de formato** — o parser converte na fronteira, o domínio não sabe a origem. Isso mantém um parser OFX barato de adicionar quando houver arquivo real para testar.
+`CompraParcelada.faturaMesReferencia` (V24, nullable) marca qual fatura originou a compra — `NULL` em compras criadas manualmente. É essa coluna, não a data de vencimento, que decide o que uma reimportação apaga; evita que reimportar um mês destrua uma compra parcelada manual que caia por coincidência no mesmo cartão/mês.
+
+Cada linha importada vira uma `CompraParcelada` com `numParcelas=1` — sem passar pelo `ParcelamentoCalculator`, já que o mês da fatura é dado pelo usuário, não calculado. Se a fatura já mostra "Parcela 2/3" no título (parcelamento feito por outro emissor, ex: parcelamento da loja), esse texto é preservado literal na descrição, sem tentar linkar com as outras parcelas — o sistema não tem visibilidade da compra original, só do que apareceu nesta fatura.
+
+O modelo de transação deve permanecer **agnóstico de formato** — o parser converte na fronteira (`LinhaFatura`), o domínio não sabe a origem. Isso mantém um parser OFX ou de outro banco barato de adicionar quando houver arquivo real para testar.
 
 ### Schema e Migrations
 
@@ -130,7 +136,7 @@ Flyway é a única fonte de verdade — `ddl-auto: none`, `validate-on-migrate: 
 
 **Migrations nunca são deletadas.** Apagar arquivo de `db/migration/` quebra o boot por checksum. V1–V23 permanecem, incluindo as de tabelas hoje órfãs (investimentos, operações, proventos, patrimônio, alertas de preço, rebalanceamento). Dropar essas tabelas é decisão separada, adiada.
 
-**Próxima migration disponível: V24**
+**Próxima migration disponível: V25**
 
 Em Spring Boot 4 o autoconfigure do Flyway está em `spring-boot-starter-flyway`, separado de `flyway-core`. Ambos são necessários no `pom.xml`.
 

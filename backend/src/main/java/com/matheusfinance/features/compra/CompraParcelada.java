@@ -46,6 +46,9 @@ public class CompraParcelada {
 
     private String categoria;
 
+    @Column(name = "fatura_mes_referencia")
+    private LocalDate faturaMesReferencia;
+
     @Column(name = "criado_em", updatable = false)
     private OffsetDateTime criadoEm;
 

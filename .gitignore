@@ -26,6 +26,10 @@ backend/src/main/resources/application-local.yml
 # OS
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
+
+# Faturas reais usadas como referência de import (dado financeiro pessoal)
+/*.csv
 
 # Claude Code
 .claude/
