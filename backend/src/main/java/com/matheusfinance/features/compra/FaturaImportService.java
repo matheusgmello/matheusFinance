@@ -50,7 +50,8 @@ public class FaturaImportService {
                 .toList();
         compraRepository.saveAll(novas);
 
-        return new FaturaImportDTO.Resultado(novas.size(), vencimento);
+        return new FaturaImportDTO.Resultado(
+                mesReferencia.getYear(), mesReferencia.getMonthValue(), novas.size(), vencimento);
     }
 
     private CompraParcelada criarCompra(Perfil perfil, Cartao cartao, LocalDate mesRef,

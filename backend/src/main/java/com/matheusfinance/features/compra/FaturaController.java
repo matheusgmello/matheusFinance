@@ -18,6 +18,7 @@ public class FaturaController {
     private final FaturaService faturaService;
     private final FaturaImportService faturaImportService;
     private final NubankFaturaParser nubankFaturaParser;
+    private final ItauFaturaPdfParser itauFaturaPdfParser;
 
     @GetMapping
     public FaturaDTO.Fatura getFatura(
@@ -34,19 +35,36 @@ public class FaturaController {
     }
 
     @PostMapping("/importar")
-    public FaturaImportDTO.Resultado importar(
+    public List<FaturaImportDTO.Resultado> importar(
         @RequestParam MultipartFile arquivo,
         @RequestParam Long cartaoId,
         @RequestParam int ano,
         @RequestParam int mes,
         @RequestHeader("X-Perfil-Id") Long perfilId
     ) {
+        YearMonth mesAtual = YearMonth.of(ano, mes);
+        String nome = arquivo.getOriginalFilename();
+
+        if (nome != null && nome.toLowerCase().endsWith(".pdf")) {
+            ItauFaturaPdfParser.Resultado extraido;
+            try {
+                extraido = itauFaturaPdfParser.parse(arquivo.getInputStream(), mesAtual);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            FaturaImportDTO.Resultado atual =
+                    faturaImportService.importar(perfilId, cartaoId, mesAtual, extraido.atual());
+            FaturaImportDTO.Resultado proxima =
+                    faturaImportService.importar(perfilId, cartaoId, mesAtual.plusMonths(1), extraido.proximaFatura());
+            return List.of(atual, proxima);
+        }
+
         List<LinhaFatura> linhas;
         try {
             linhas = nubankFaturaParser.parse(arquivo.getInputStream());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return faturaImportService.importar(perfilId, cartaoId, YearMonth.of(ano, mes), linhas);
+        return List.of(faturaImportService.importar(perfilId, cartaoId, mesAtual, linhas));
     }
 }

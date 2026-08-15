@@ -30,6 +30,7 @@ Thumbs.db
 
 # Faturas reais usadas como referência de import (dado financeiro pessoal)
 /*.csv
+/*.pdf
 
 # Claude Code
 .claude/
