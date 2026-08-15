@@ -25,37 +25,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IR/DARF e acompanhamento de carteira foram removidos do projeto.** O ReVar (B3 + Receita Federal) faz apuração de renda variável de graça, e Status Invest / Investidor10 consolidam carteira melhor. Não reintroduzir sem uma razão nova — o código está no histórico do git.
 
-O foco é a **entrada de dados sem digitação**: import de CSV de fatura. Digitação manual foi o que fez o projeto ser abandonado antes.
+O foco é a **entrada de dados sem digitação**: import de fatura (CSV ou PDF, dependendo do banco). Digitação manual foi o que fez o projeto ser abandonado antes.
 
 ---
 
-## Comandos Essenciais
+## Ambiente Local
 
-### Infraestrutura
+### Subir o projeto
 
 ```bash
-# Subir apenas o PostgreSQL (necessário para rodar o backend localmente)
+# Postgres (necessário pro backend rodar)
 docker compose up postgres -d
-```
 
-### Backend (`/backend`)
-
-```bash
-# JDK obrigatório: Zulu 21
+# Backend — JDK obrigatório: Zulu 21
+cd backend
 mvn compile
 mvn spring-boot:run    # requer postgres container rodando
 mvn package -DskipTests
-```
 
-### Frontend (`/frontend`)
-
-```bash
+# Frontend
 cd frontend
 npm install
 npm run dev      # Vite dev server em localhost:5173 (expõe na rede local via host: true)
 npm run build    # tsc + vite build
 npx tsc --noEmit # typecheck isolado
 ```
+
+Scripts `.bat`/`.sh` foram removidos — sobe cada peça manualmente como acima.
+
+### Configuração
+
+| Config | Valor |
+|--------|-------|
+| PostgreSQL host | `localhost:5435` (Docker) — evita conflito com instância local na 5432 |
+| Backend | `http://localhost:8085` |
+| Frontend dev | `http://localhost:5173` (Vite `host: true`, já expõe na rede local sem flag extra) |
+| JDK | Zulu 21 |
+
+IntelliJ: SDK apontando pra Zulu 21, Annotation Processing habilitado (Lombok).
 
 ---
 
@@ -68,13 +75,12 @@ com.matheusfinance/
 │   └── api/exception/     # GlobalExceptionHandler + exceções HTTP
 ├── infra/
 │   ├── config/            # SecurityConfig, AppProperties, SchedulingConfig
-│   ├── persistence/       # BackupService (backup JSON diário)
-│   └── util/              # SpreadsheetReader
+│   └── persistence/       # BackupService (backup JSON diário)
 └── features/              # cada feature isolada, package-by-feature
     ├── auth/              # e-mail + senha + JWT
     ├── perfil/            # perfis, export/import, limpar dados
     ├── cartao/
-    ├── compra/            # compras parceladas, parcelas, fatura, ParcelamentoCalculator
+    ├── compra/            # compras parceladas, parcelas, fatura + import (Nubank/Itaú), ParcelamentoCalculator
     ├── recorrente/        # pagamentos fixos mensais + checklist
     ├── categoria/
     ├── orcamento/
@@ -138,15 +144,31 @@ O modelo de transação deve permanecer **agnóstico de formato** — cada parse
 
 `pdfbox` (3.0.2) e `commons-csv` já estavam no `pom.xml`, sobra do parser de investimentos deletado — reaproveitados aqui, zero dependência nova.
 
+### Export / Import e Backup
+
+`PerfilExportImportService` serializa perfil em JSON. `BackupService` grava backup diário por perfil em `./backups`, retenção 30 dias.
+
+**`BackupService` usa o `ObjectMapper` (Jackson 3, `tools.jackson.databind`) injetado pelo Spring, não uma instância própria.** Uma instância própria com Jackson 2 (`com.fasterxml.jackson.databind`) já causou uma falha silenciosa real: sem `jackson-datatype-jsr310` no classpath, `OffsetDateTime` não serializa, a exceção era capturada e logada por perfil, e o job terminava com "Backup automático concluído" mesmo com todo backup do dia corrompido. `BackupServiceTest` existe para pegar essa classe de regressão de novo.
+
+Cobre cartões, compras com parcelas, recorrentes com checklist, categorias, orçamentos, receitas e metas. Coberto por `PerfilExportImportServiceTest`.
+
+**Ao adicionar uma entidade nova por perfil, ela precisa entrar no backup** — em `PerfilBackupDTO.Backup`, no export e no import. O teste de round-trip falha se você esquecer, desde que uma asserção seja adicionada junto.
+
+Formato na versão `"2"`. Backups na `"1"` não têm categorias, orçamentos, receitas e metas; o import trata esses campos nulos como lista vazia.
+
 ### Schema e Migrations
 
 Flyway é a única fonte de verdade — `ddl-auto: none`, `validate-on-migrate: true`.
 
-**Migrations nunca são deletadas.** Apagar arquivo de `db/migration/` quebra o boot por checksum. V1–V23 permanecem, incluindo as de tabelas hoje órfãs (investimentos, operações, proventos, patrimônio, alertas de preço, rebalanceamento). Dropar essas tabelas é decisão separada, adiada.
+**Migrations nunca são deletadas.** Apagar arquivo de `db/migration/` quebra o boot por checksum. V1–V24 permanecem, incluindo as de tabelas hoje órfãs (investimentos, operações, proventos, patrimônio, alertas de preço, rebalanceamento). Dropar essas tabelas é decisão separada, adiada.
 
 **Próxima migration disponível: V25**
 
 Em Spring Boot 4 o autoconfigure do Flyway está em `spring-boot-starter-flyway`, separado de `flyway-core`. Ambos são necessários no `pom.xml`.
+
+---
+
+## Testes e Qualidade
 
 ### Testes
 
@@ -164,6 +186,8 @@ Cobertura atual:
 - `ParcelamentoCalculatorTest` — regra de fechamento, meses curtos, ano bissexto, virada de ano
 - `PerfilExportImportServiceTest` — round-trip export/import de todas as entidades + compatibilidade com backup versão "1"
 - `BackupServiceTest` — dispara o backup agendado, lê o JSON gravado em disco e restaura via `PerfilExportImportService`, fechando o ciclo que `PerfilExportImportServiceTest` sozinho não cobre
+- `NubankFaturaParserTest`, `ItauFaturaPdfParserTest` — gramática de cada formato, com texto/CSV literal no teste (nunca o arquivo real do usuário)
+- `FaturaImportServiceTest` — idempotência por `(cartão, mês)`, e que reimportar não apaga compra manual coincidente
 
 Ao escrever testes de integração: `@AutoConfigureMockMvc` foi removido no Spring Boot 4, e RestAssured 5.5.0 lança NPE no Java 21 via Groovy (as duas dependências foram removidas do `pom.xml`). Usar `RestTemplate` com `@LocalServerPort`.
 
@@ -197,17 +221,9 @@ cd frontend && npm audit --json > reports/npm-audit.json; node quality-gate.mjs 
 
 `.github/workflows/ci.yml` roda `collect` + `check` em cada job depois dos testes/build, publica o resumo no `$GITHUB_STEP_SUMMARY`, e `update` só no push pra `main`.
 
-### Export / Import e Backup
+### CI / Branch Protection
 
-`PerfilExportImportService` serializa perfil em JSON. `BackupService` grava backup diário por perfil em `./backups`, retenção 30 dias.
-
-**`BackupService` usa o `ObjectMapper` (Jackson 3, `tools.jackson.databind`) injetado pelo Spring, não uma instância própria.** Uma instância própria com Jackson 2 (`com.fasterxml.jackson.databind`) já causou uma falha silenciosa real: sem `jackson-datatype-jsr310` no classpath, `OffsetDateTime` não serializa, a exceção era capturada e logada por perfil, e o job terminava com "Backup automático concluído" mesmo com todo backup do dia corrompido. `BackupServiceTest` existe para pegar essa classe de regressão de novo.
-
-Cobre cartões, compras com parcelas, recorrentes com checklist, categorias, orçamentos, receitas e metas. Coberto por `PerfilExportImportServiceTest`.
-
-**Ao adicionar uma entidade nova por perfil, ela precisa entrar no backup** — em `PerfilBackupDTO.Backup`, no export e no import. O teste de round-trip falha se você esquecer, desde que uma asserção seja adicionada junto.
-
-Formato na versão `"2"`. Backups na `"1"` não têm categorias, orçamentos, receitas e metas; o import trata esses campos nulos como lista vazia.
+`main` exige os dois jobs do `ci.yml` (`Backend Tests (Java 21)`, `Frontend Build (Node 20)`) verdes pra liberar merge — inclui o quality gate, que roda dentro desses jobs. `enforce_admins` ligado, sem exceção pro dono do repo. Auto-merge ligado no repo: PR mescla sozinho no instante em que os checks passam, sem clique.
 
 ---
 
@@ -261,19 +277,6 @@ Tamanhos de fonte sobrescritos: `text-xs`=13px, `text-sm`=15px, `text-base`=17px
 
 ---
 
-## Configuração de Ambiente Local
-
-| Config | Valor |
-|--------|-------|
-| PostgreSQL host | `localhost:5435` (Docker) |
-| Backend | `http://localhost:8085` |
-| Frontend dev | `http://localhost:5173` |
-| JDK | Zulu 21 |
-
-IntelliJ: SDK apontando para Zulu 21, Annotation Processing habilitado (Lombok).
-
----
-
 ## Problemas Conhecidos e Decisões
 
 - **Porta 5435:** evita conflito com PostgreSQL local na 5432.
@@ -281,6 +284,4 @@ IntelliJ: SDK apontando para Zulu 21, Annotation Processing habilitado (Lombok).
 - **`spring-boot-starter-flyway`:** necessário no SB4 além do `flyway-core`.
 - **RestAssured:** não usar — NPE no Java 21 via Groovy. Usar `RestTemplate`.
 - **CORS:** `allowedOriginPatterns` a partir de `app.cors.allowed-origins`, com fallback para `*`.
-- **Scripts .bat/.sh:** removidos. Subir manualmente: `docker compose up postgres -d` + `mvn spring-boot:run` + `npm run dev`.
-- **Vite `host: true`:** frontend já expõe na rede local sem flag extra.
-- **Backup incompleto:** ver seção Export / Import acima.
+- **Testcontainers:** não usar — `docker-java` embutido negocia API antiga, Docker 29+ recusa. Testes de integração usam Postgres real (ver Testes e Qualidade acima).

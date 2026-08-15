@@ -55,3 +55,7 @@ quality-gate-summary.md
 .jscpd/
 backend/reports/
 frontend/reports/
+
+
+# Agents files
+CLAUDE.LOCAL.md
