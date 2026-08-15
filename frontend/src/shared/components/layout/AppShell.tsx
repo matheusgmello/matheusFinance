@@ -116,8 +116,7 @@ export default function AppShell() {
     setupAxiosInterceptors(perfilId, token)
   }, [perfilId, token])
 
-  // TEMP: bypass login para testes
-  // if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!isAuthenticated) return <Navigate to="/login" replace />
 
   return (
     <div className="flex h-screen bg-bg-body">

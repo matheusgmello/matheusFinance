@@ -1,0 +1,11 @@
+{
+  "root": ".",
+  "maxFileLines": 300,
+  "metrics": ["coverage", "duplication", "largeFiles"],
+  "includeExt": [".java"],
+  "exclude": ["target", ".git"],
+  "reports": {
+    "coverage": "target/site/jacoco/jacoco.csv"
+  },
+  "summaryFile": "quality-gate-summary.md"
+}

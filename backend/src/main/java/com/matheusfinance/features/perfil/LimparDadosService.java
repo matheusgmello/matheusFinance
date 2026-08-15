@@ -1,14 +1,11 @@
 package com.matheusfinance.features.perfil;
 
-import com.matheusfinance.features.alertapreco.AlertaPrecoRepository;
 import com.matheusfinance.features.cartao.CartaoRepository;
 import com.matheusfinance.features.categoria.CategoriaRepository;
 import com.matheusfinance.features.compra.CompraRepository;
 import com.matheusfinance.features.compra.ParcelaRepository;
-import com.matheusfinance.features.investimento.InvestmentPositionRepository;
 import com.matheusfinance.features.meta.MetaRepository;
 import com.matheusfinance.features.orcamento.OrcamentoRepository;
-import com.matheusfinance.features.patrimonio.PatrimonioSnapshotRepository;
 import com.matheusfinance.features.receita.ReceitaRepository;
 import com.matheusfinance.features.recorrente.ChecklistRepository;
 import com.matheusfinance.features.recorrente.RecorrenteRepository;
@@ -29,10 +26,7 @@ public class LimparDadosService {
     private final ChecklistRepository checklistRepository;
     private final RecorrenteRepository recorrenteRepository;
     private final CartaoRepository cartaoRepository;
-    private final InvestmentPositionRepository investmentPositionRepository;
-    private final AlertaPrecoRepository alertaPrecoRepository;
     private final MetaRepository metaRepository;
-    private final PatrimonioSnapshotRepository patrimonioSnapshotRepository;
     private final OrcamentoRepository orcamentoRepository;
     private final ReceitaRepository receitaRepository;
     private final CategoriaRepository categoriaRepository;
@@ -51,10 +45,7 @@ public class LimparDadosService {
         checklistRepository.deleteAllByPerfilId(perfilId);
         recorrenteRepository.deleteAllByPerfilId(perfilId);
         cartaoRepository.deleteAllByPerfilId(perfilId);
-        investmentPositionRepository.deleteAllByPerfilId(perfilId);
-        alertaPrecoRepository.deleteAllByPerfilId(perfilId);
         metaRepository.deleteAllByPerfilId(perfilId);
-        patrimonioSnapshotRepository.deleteAllByPerfilId(perfilId);
         orcamentoRepository.deleteAllByPerfilId(perfilId);
         receitaRepository.deleteAllByPerfilId(perfilId);
         categoriaRepository.deleteAllByPerfilId(perfilId);

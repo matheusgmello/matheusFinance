@@ -30,7 +30,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/matheusfinance
       SPRING_DATASOURCE_USERNAME: finance_user
       SPRING_DATASOURCE_PASSWORD: finance_pass
-      APP_MASTER_KEY: ${APP_MASTER_KEY:-changeme123}
       SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8085:8085"

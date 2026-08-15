@@ -9,7 +9,6 @@ import { orcamentosApi, Orcamento, OrcamentoRequest } from '../../domains/config
 import { receitasApi } from '../../domains/dashboard/api/extra'
 import { perfisApi } from '../../domains/configuracao/api'
 import { relatoriosApi } from '../../domains/dashboard/api/extra'
-import { patrimonioApi } from '../../domains/investimento/api'
 import { categoriasApi, CORES, Categoria, Cor } from '../../domains/configuracao/api'
 import { useProfile } from '../../shared/context/ProfileContext'
 import { useTheme } from '../../shared/context/ThemeContext'
@@ -21,7 +20,6 @@ import { CategoriaSelect } from '../../shared/components/ui/CategoriaSelect'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
-  AreaChart, Area,
 } from 'recharts'
 import {
   CreditCard, Trash2, Plus, X, ChevronDown, ChevronUp,
@@ -680,12 +678,6 @@ function ResumoTab() {
     queryFn: dashboardApi.projecao,
     enabled: !!activeProfile,
   })
-  const [patrimonioMeses, setPatrimonioMeses] = useState<6 | 12 | 24>(12)
-  const { data: patrimonioHist, isLoading: loadingPatrimonio } = useQuery({
-    queryKey: ['patrimonio-historico', activeProfile?.id, patrimonioMeses],
-    queryFn: () => patrimonioApi.historico(patrimonioMeses),
-    enabled: !!activeProfile,
-  })
 
   const salvarReceita = useMutation({
     mutationFn: () => receitasApi.salvar(ano, mes, parseFloat(receitaInput.replace(',', '.')) || 0),
@@ -811,106 +803,6 @@ function ResumoTab() {
         </Card>
       </div>
 
-      {/* Evolução do Patrimônio */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-            Evolução do Patrimônio
-          </h2>
-          <div className="flex gap-1">
-            {([6, 12, 24] as const).map(m => (
-              <button
-                key={m}
-                onClick={() => setPatrimonioMeses(m)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                  patrimonioMeses === m
-                    ? 'bg-accent-500 text-white'
-                    : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-                }`}
-              >
-                {m}m
-              </button>
-            ))}
-          </div>
-        </div>
-        {loadingPatrimonio ? (
-          <div className="h-56 flex items-center justify-center text-gray-400 dark:text-slate-500">Carregando…</div>
-        ) : !patrimonioHist?.pontos.length ? (
-          <div className="h-56 flex flex-col items-center justify-center gap-2 text-gray-400 dark:text-slate-500">
-            <p className="text-sm">Nenhum snapshot de patrimônio disponível.</p>
-            <p className="text-xs">Acesse a aba <strong>Investimentos</strong> para gerar o primeiro snapshot.</p>
-          </div>
-        ) : (
-          <>
-            {/* Summary row */}
-            {(() => {
-              const pts = patrimonioHist.pontos
-              const last = pts[pts.length - 1]
-              const prev = pts[pts.length - 2]
-              const pct = prev && prev.totalAtual > 0
-                ? ((last.totalAtual - prev.totalAtual) / prev.totalAtual) * 100
-                : null
-              const pnlPct = last.totalInvestido > 0
-                ? ((last.totalAtual - last.totalInvestido) / last.totalInvestido) * 100
-                : null
-              return (
-                <div className="flex flex-wrap gap-6 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-400 dark:text-slate-500">Valor atual</p>
-                    <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{BRL(last.totalAtual)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400 dark:text-slate-500">Investido</p>
-                    <p className="text-xl font-bold text-gray-700 dark:text-slate-300">{BRL(last.totalInvestido)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400 dark:text-slate-500">P&L total</p>
-                    <p className={`text-xl font-bold ${last.pnlNominal >= 0 ? 'text-accent-500' : 'text-rose-500'}`}>
-                      {last.pnlNominal >= 0 ? '+' : ''}{BRL(last.pnlNominal)}
-                      {pnlPct !== null && <span className="text-sm ml-1">({pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(1)}%)</span>}
-                    </p>
-                  </div>
-                  {pct !== null && (
-                    <div>
-                      <p className="text-xs text-gray-400 dark:text-slate-500">vs anterior</p>
-                      <p className={`text-xl font-bold ${pct >= 0 ? 'text-accent-500' : 'text-rose-500'}`}>
-                        {pct >= 0 ? '+' : ''}{pct.toFixed(1)}%
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={patrimonioHist.pontos} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gradAtual" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="rgb(var(--accent-500))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="rgb(var(--accent-500))" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gradInvestido" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="label" tick={{ fill: axisColor, fontSize: 10 }} axisLine={false} tickLine={false}
-                  interval="preserveStartEnd" />
-                <YAxis tick={{ fill: axisColor, fontSize: 10 }} axisLine={false} tickLine={false}
-                  tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} width={52} />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  labelStyle={tooltipLabelStyle}
-                  formatter={(v: number, name: string) => [BRL(v), name === 'totalAtual' ? 'Valor Atual' : 'Investido']}
-                />
-                <Area type="monotone" dataKey="totalInvestido" name="totalInvestido"
-                  stroke="#94a3b8" strokeWidth={1.5} fill="url(#gradInvestido)" dot={false} />
-                <Area type="monotone" dataKey="totalAtual" name="totalAtual"
-                  stroke="rgb(var(--accent-500))" strokeWidth={2} fill="url(#gradAtual)" dot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </>
-        )}
-      </Card>
     </div>
   )
 }

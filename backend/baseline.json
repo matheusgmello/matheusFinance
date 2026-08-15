@@ -1,0 +1,9 @@
+{
+  "generatedAt": "2026-08-15T17:49:41.519Z",
+  "maxFileLines": 300,
+  "metrics": {
+    "coverage": 23.18,
+    "duplication": 6.23,
+    "largeFiles": 0
+  }
+}

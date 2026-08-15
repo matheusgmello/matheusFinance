@@ -26,6 +26,10 @@ backend/src/main/resources/application-local.yml
 # OS
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
+
+# Faturas reais usadas como referência de import (dado financeiro pessoal)
+/*.csv
 
 # Claude Code
 .claude/
@@ -43,4 +47,10 @@ instrucoes.md
 ROADMAP.md
 
 # Contexto local (não versionado)
-contexto/
+
+# quality-gate: só baseline.json é versionado, o resto é gerado
+metrics.json
+quality-gate-summary.md
+.jscpd/
+backend/reports/
+frontend/reports/
