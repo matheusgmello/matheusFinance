@@ -19,13 +19,10 @@ public class Usuario {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 255)
-    private String email;
+    private String username;
 
     @Column(name = "senha_hash", nullable = false, length = 255)
     private String senhaHash;
-
-    @Column(nullable = false, length = 100)
-    private String nome;
 
     @Column(name = "criado_em", updatable = false)
     private OffsetDateTime criadoEm;

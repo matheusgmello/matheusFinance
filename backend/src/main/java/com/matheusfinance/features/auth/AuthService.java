@@ -23,18 +23,17 @@ public class AuthService {
         if (!req.senha().equals(req.confirmarSenha())) {
             throw new IllegalArgumentException("As senhas não coincidem");
         }
-        if (usuarioRepository.existsByEmail(req.email().toLowerCase())) {
-            throw new IllegalArgumentException("E-mail já cadastrado");
+        if (usuarioRepository.existsByUsername(req.usuario().toLowerCase())) {
+            throw new IllegalArgumentException("Usuário já cadastrado");
         }
 
         Usuario usuario = usuarioRepository.save(Usuario.builder()
-                .email(req.email().toLowerCase())
+                .username(req.usuario().toLowerCase())
                 .senhaHash(passwordEncoder.encode(req.senha()))
-                .nome(req.nome().trim())
                 .build());
 
         Perfil perfil = perfilRepository.save(Perfil.builder()
-                .nome(req.nome().trim())
+                .nome(req.usuario().trim())
                 .usuarioId(usuario.getId())
                 .build());
 
@@ -44,11 +43,11 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthDTO.LoginResponse login(AuthDTO.LoginRequest req) {
-        Usuario usuario = usuarioRepository.findByEmail(req.email().toLowerCase())
-                .orElseThrow(() -> new UnauthorizedException("E-mail ou senha incorretos"));
+        Usuario usuario = usuarioRepository.findByUsername(req.usuario().toLowerCase())
+                .orElseThrow(() -> new UnauthorizedException("Usuário ou senha incorretos"));
 
         if (!passwordEncoder.matches(req.senha(), usuario.getSenhaHash())) {
-            throw new UnauthorizedException("E-mail ou senha incorretos");
+            throw new UnauthorizedException("Usuário ou senha incorretos");
         }
 
         Perfil perfil = perfilRepository.findFirstByUsuarioId(usuario.getId())

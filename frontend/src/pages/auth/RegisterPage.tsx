@@ -5,7 +5,7 @@ import { authApi } from '../../domains/auth/api'
 import { useAuth } from '../../shared/context/AuthContext'
 import { useProfile } from '../../shared/context/ProfileContext'
 import { setupAxiosInterceptors } from '../../core/api/axios'
-import { UserPlus, Mail, Lock, User } from 'lucide-react'
+import { UserPlus, Lock, User } from 'lucide-react'
 
 const INPUT_CLS = `w-full px-10 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl
   bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-sm
@@ -16,14 +16,13 @@ export default function RegisterPage() {
   const { login } = useAuth()
   const { setActiveProfile } = useProfile()
 
-  const [nome,           setNome]           = useState('')
-  const [email,          setEmail]          = useState('')
+  const [usuario,        setUsuario]        = useState('')
   const [senha,          setSenha]          = useState('')
   const [confirmar,      setConfirmar]      = useState('')
   const [erro,           setErro]           = useState('')
 
   const mutation = useMutation({
-    mutationFn: () => authApi.register(email, nome, senha, confirmar),
+    mutationFn: () => authApi.register(usuario, senha, confirmar),
     onSuccess: data => {
       login(data.token, data.perfilId, data.perfilNome)
       setActiveProfile({ id: data.perfilId, nome: data.perfilNome, criadoEm: '' })
@@ -40,8 +39,7 @@ export default function RegisterPage() {
 
   function handleSubmit() {
     setErro('')
-    if (!nome.trim()) return setErro('Informe seu nome.')
-    if (!email.includes('@')) return setErro('E-mail inválido.')
+    if (usuario.trim().length < 3) return setErro('Usuário deve ter no mínimo 3 caracteres.')
     if (senha.length < 6) return setErro('A senha deve ter no mínimo 6 caracteres.')
     if (senha !== confirmar) return setErro('As senhas não coincidem.')
     mutation.mutate()
@@ -68,22 +66,12 @@ export default function RegisterPage() {
             <h2 className="font-semibold text-gray-900 dark:text-slate-100">Criar conta</h2>
           </div>
 
-          {/* Nome */}
+          {/* Usuário */}
           <div className="relative">
             <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
             <input
-              type="text" placeholder="Seu nome"
-              value={nome} onChange={e => { setNome(e.target.value); setErro('') }}
-              className={INPUT_CLS}
-            />
-          </div>
-
-          {/* Email */}
-          <div className="relative">
-            <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
-            <input
-              type="email" placeholder="seu@email.com"
-              value={email} onChange={e => { setEmail(e.target.value); setErro('') }}
+              type="text" placeholder="Usuário"
+              value={usuario} onChange={e => { setUsuario(e.target.value); setErro('') }}
               className={INPUT_CLS}
             />
           </div>
