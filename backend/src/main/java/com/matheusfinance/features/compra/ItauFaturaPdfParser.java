@@ -1,12 +1,8 @@
 package com.matheusfinance.features.compra;
 
 import com.matheusfinance.core.api.exception.InvalidFileFormatException;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,15 +39,7 @@ public class ItauFaturaPdfParser {
     public record Resultado(List<LinhaFatura> atual, List<LinhaFatura> proximaFatura) {}
 
     public Resultado parse(InputStream input, YearMonth mesReferencia) {
-        String texto;
-        try (PDDocument doc = Loader.loadPDF(input.readAllBytes())) {
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.setSortByPosition(false);
-            texto = stripper.getText(doc);
-        } catch (IOException e) {
-            throw new InvalidFileFormatException("Falha ao ler PDF do Itaú: " + e.getMessage());
-        }
-        return parseTexto(texto, mesReferencia);
+        return parseTexto(FaturaPdfUtil.extrairTexto(input, "Itaú"), mesReferencia);
     }
 
     /** Separado de parse() pra testar a gramática sem precisar de um PDF de verdade. */
@@ -109,31 +97,16 @@ public class ItauFaturaPdfParser {
             descricao += " - Parcela " + tokens[tokens.length - 2];
         }
 
-        LocalDate data = resolverData(tokens[0], mesReferencia);
+        // Não cobre virada de ano com folga de mais de 1 ano (ex: fatura de
+        // dezembro com transação de janeiro do ano ainda anterior) — não vi
+        // exemplo real desse caso pra confirmar o comportamento certo.
+        String[] partesData = tokens[0].split("/");
+        LocalDate data = FaturaPdfUtil.resolverData(
+                Integer.parseInt(partesData[0]), Integer.parseInt(partesData[1]), mesReferencia);
         BigDecimal valor = new BigDecimal(
                 tokens[tokens.length - 1].replace(".", "").replace(",", "."));
 
         return new LinhaFatura(data, descricao, valor);
-    }
-
-    /**
-     * O PDF só dá dia/mês, sem ano. Uma parcela final de compra longa pode ser
-     * de meses antes dentro do mesmo ciclo de fatura — se o mês da transação é
-     * posterior ao mês de referência da fatura, só pode ser do ano anterior
-     * (nada é lançado no futuro numa fatura já fechada).
-     *
-     * Não cobre virada de ano com folga de mais de 1 ano (ex: fatura de
-     * dezembro com transação de janeiro do ano ainda anterior) — não vi
-     * exemplo real desse caso pra confirmar o comportamento certo.
-     */
-    private LocalDate resolverData(String diaMes, YearMonth mesReferencia) {
-        String[] partes = diaMes.split("/");
-        int dia = Integer.parseInt(partes[0]);
-        int mes = Integer.parseInt(partes[1]);
-        int ano = mes > mesReferencia.getMonthValue()
-                ? mesReferencia.getYear() - 1
-                : mesReferencia.getYear();
-        return LocalDate.of(ano, mes, Math.min(dia, YearMonth.of(ano, mes).lengthOfMonth()));
     }
 
     private enum Secao { NENHUMA, ATUAL, PROXIMA }
