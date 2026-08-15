@@ -1,5 +1,6 @@
 package com.matheusfinance.features.compra;
 
+import com.matheusfinance.core.api.exception.InvalidFileFormatException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +19,7 @@ public class FaturaController {
     private final FaturaService faturaService;
     private final FaturaImportService faturaImportService;
     private final NubankFaturaParser nubankFaturaParser;
+    private final NubankFaturaPdfParser nubankFaturaPdfParser;
     private final ItauFaturaPdfParser itauFaturaPdfParser;
 
     @GetMapping
@@ -34,18 +36,28 @@ public class FaturaController {
         );
     }
 
+    /**
+     * banco decide o parser explicitamente — extensão sozinha não basta desde
+     * que o Nubank passou a ter fatura em CSV *e* em PDF: um .pdf pode ser de
+     * qualquer um dos dois bancos.
+     */
     @PostMapping("/importar")
     public List<FaturaImportDTO.Resultado> importar(
         @RequestParam MultipartFile arquivo,
         @RequestParam Long cartaoId,
         @RequestParam int ano,
         @RequestParam int mes,
+        @RequestParam String banco,
         @RequestHeader("X-Perfil-Id") Long perfilId
     ) {
         YearMonth mesAtual = YearMonth.of(ano, mes);
-        String nome = arquivo.getOriginalFilename();
+        boolean isPdf = arquivo.getOriginalFilename() != null
+                && arquivo.getOriginalFilename().toLowerCase().endsWith(".pdf");
 
-        if (nome != null && nome.toLowerCase().endsWith(".pdf")) {
+        if ("itau".equalsIgnoreCase(banco)) {
+            if (!isPdf) {
+                throw new InvalidFileFormatException("Itaú só importa fatura em PDF.");
+            }
             ItauFaturaPdfParser.Resultado extraido;
             try {
                 extraido = itauFaturaPdfParser.parse(arquivo.getInputStream(), mesAtual);
@@ -59,12 +71,18 @@ public class FaturaController {
             return List.of(atual, proxima);
         }
 
-        List<LinhaFatura> linhas;
-        try {
-            linhas = nubankFaturaParser.parse(arquivo.getInputStream());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        if ("nubank".equalsIgnoreCase(banco)) {
+            List<LinhaFatura> linhas;
+            try {
+                linhas = isPdf
+                        ? nubankFaturaPdfParser.parse(arquivo.getInputStream(), mesAtual)
+                        : nubankFaturaParser.parse(arquivo.getInputStream());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            return List.of(faturaImportService.importar(perfilId, cartaoId, mesAtual, linhas));
         }
-        return List.of(faturaImportService.importar(perfilId, cartaoId, mesAtual, linhas));
+
+        throw new InvalidFileFormatException("Banco não suportado: " + banco + ". Use 'nubank' ou 'itau'.");
     }
 }
