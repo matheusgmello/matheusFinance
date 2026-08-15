@@ -159,6 +159,36 @@ Cobertura atual:
 
 Ao escrever testes de integração: `@AutoConfigureMockMvc` foi removido no Spring Boot 4, e RestAssured 5.5.0 lança NPE no Java 21 via Groovy (as duas dependências foram removidas do `pom.xml`). Usar `RestTemplate` com `@LocalServerPort`.
 
+### Quality Gate
+
+Ratchet de métricas (skill `quality-gate-lite` de [matheusgmello/skills](https://github.com/matheusgmello/skills)): uma PR pode adicionar código, mas nunca pode piorar uma métrica. `backend/quality-gate.mjs` e `frontend/quality-gate.mjs` são cópias idênticas do mesmo script zero-dependência; cada lado tem seu próprio `qualitygate.config.json` e `baseline.json` — são dois projetos com stacks diferentes, não faz sentido um gate só.
+
+```bash
+# backend
+cd backend && mvn test jacoco:report && node quality-gate.mjs collect && node quality-gate.mjs check
+
+# frontend
+cd frontend && npm audit --json > reports/npm-audit.json; node quality-gate.mjs collect && node quality-gate.mjs check
+```
+
+`collect` escreve `metrics.json` (gerado, não versionado); `check` compara com `baseline.json` (versionado) e sai com código 1 se alguma métrica piorou; `update` avança o baseline — só roda em push pra `main`, nunca numa PR.
+
+**Métricas ligadas hoje refletem a infra que existe de verdade, não a lista completa da skill:**
+
+| | Backend | Frontend |
+|---|---|---|
+| `coverage` | JaCoCo (`target/site/jacoco/jacoco.csv`) | — sem test framework, não ligado |
+| `duplication` | jscpd (built-in no script) | jscpd |
+| `largeFiles` | > 300 linhas (built-in) | > 300 linhas |
+| `lint` | — sem Checkstyle configurado | — `eslint` não está instalado (`npm run lint` no `package.json` é vestigial, falha com "eslint: not found") |
+| `security` | — a skill só sabe ler `npm audit`, não tem receita para Maven | `npm audit --json` |
+
+`lint`/`complexity`/`security` do lado backend e `lint`/`coverage` do lado frontend ficam de fora até a infra que alimenta cada um existir de verdade — ligar a métrica sem o relatório por trás só ia gerar `null` permanente. Instalar Checkstyle, Pitest ou ESLint só para alimentar o gate não estava no escopo desta mudança; ESLint em particular cruza com a issue #1 (redesign do frontend).
+
+**Não é a versão `quality-gate` (full).** Essa soma `complexity` (exige regra de complexidade ciclomática no lint), `dependencies` (ciclos circulares via `madge`, só enxerga JS/TS — sempre `null` no backend, que é onde mora a complexidade real hoje) e `mutation` (Pitest/Stryker, e a própria doc da skill diz pra só ligar quando a suíte de testes estiver sólida — a daqui tem poucos dias). Config é compatível: subir de lite pra full depois é só adicionar essas três à lista `metrics`, o `baseline.json` continua valendo.
+
+`.github/workflows/ci.yml` roda `collect` + `check` em cada job depois dos testes/build, publica o resumo no `$GITHUB_STEP_SUMMARY`, e `update` só no push pra `main`.
+
 ### Export / Import e Backup
 
 `PerfilExportImportService` serializa perfil em JSON. `BackupService` grava backup diário por perfil em `./backups`, retenção 30 dias.

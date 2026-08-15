@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   backend:
     name: Backend Tests (Java 21)
@@ -37,12 +40,32 @@ jobs:
 
       - name: Run tests
         working-directory: backend
-        run: mvn test -B
+        run: mvn test jacoco:report -B
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5435/matheusfinance_test
           SPRING_DATASOURCE_USERNAME: finance_user
           SPRING_DATASOURCE_PASSWORD: finance_pass
+
+      - name: Quality gate
+        working-directory: backend
+        run: |
+          node quality-gate.mjs collect
+          node quality-gate.mjs check
+
+      - name: Quality gate summary
+        if: always()
+        working-directory: backend
+        run: cat quality-gate-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Advance quality-gate baseline (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        working-directory: backend
+        run: |
+          node quality-gate.mjs update
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "chore: advance backend quality-gate baseline" && git push || echo "nothing to advance"
 
   frontend:
     name: Frontend Build (Node 20)
@@ -64,3 +87,29 @@ jobs:
       - name: Build (type check + bundle)
         working-directory: frontend
         run: npm run build
+
+      - name: Security audit
+        working-directory: frontend
+        run: |
+          mkdir -p reports
+          npm audit --json > reports/npm-audit.json || true
+
+      - name: Quality gate
+        working-directory: frontend
+        run: |
+          node quality-gate.mjs collect
+          node quality-gate.mjs check
+
+      - name: Quality gate summary
+        if: always()
+        working-directory: frontend
+        run: cat quality-gate-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Advance quality-gate baseline (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        working-directory: frontend
+        run: |
+          node quality-gate.mjs update
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "chore: advance frontend quality-gate baseline" && git push || echo "nothing to advance"

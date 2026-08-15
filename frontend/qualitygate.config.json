@@ -1,0 +1,11 @@
+{
+  "root": ".",
+  "maxFileLines": 300,
+  "metrics": ["duplication", "largeFiles", "security"],
+  "includeExt": [".ts", ".tsx"],
+  "exclude": ["node_modules", ".git", "dist", "build"],
+  "reports": {
+    "audit": "reports/npm-audit.json"
+  },
+  "summaryFile": "quality-gate-summary.md"
+}

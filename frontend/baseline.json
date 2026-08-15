@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-08-15T17:49:33.573Z",
+  "maxFileLines": 300,
+  "metrics": {
+    "duplication": 2.61,
+    "largeFiles": 3,
+    "security": {
+      "critical": 0,
+      "high": 9
+    }
+  }
+}
