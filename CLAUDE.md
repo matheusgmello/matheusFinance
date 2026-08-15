@@ -118,17 +118,25 @@ Multi-perfil é mantido deliberadamente mesmo com um único usuário: `perfilId`
 
 ### Import de Fatura
 
-Entrada de dados é **CSV de fatura** exportado do banco. Nubank e Itaú exportam CSV; o Itaú deixou de oferecer OFX para fatura de cartão. Nubank implementado (`NubankFaturaParser`); Itaú fica para quando houver arquivo real para testar o mapeamento de colunas.
+`POST /api/fatura/importar?cartaoId=X&ano=Y&mes=Z` (multipart, campo `arquivo`). Formato despachado por extensão do arquivo — `.pdf` vai pro `ItauFaturaPdfParser`, qualquer outra coisa (hoje só `.csv`) pro `NubankFaturaParser`. Resposta é sempre `List<FaturaImportDTO.Resultado>` (um elemento por mês afetado — CSV sempre 1, PDF do Itaú sempre 2, ver abaixo).
 
-`POST /api/fatura/importar?cartaoId=X&ano=Y&mes=Z` (multipart, campo `arquivo`). Formato do Nubank: colunas `date,title,amount`, valor com vírgula decimal entre aspas, negativo (`"- 123,45"`) para pagamento/estorno — essas linhas são descartadas no parser, só valor positivo vira lançamento.
+**Nubank — CSV.** Colunas `date,title,amount`, valor com vírgula decimal entre aspas, negativo (`"- 123,45"`) para pagamento/estorno — essas linhas são descartadas no parser, só valor positivo vira lançamento.
+
+**Itaú — PDF, não CSV.** Extração de texto via PDFBox (`ItauFaturaPdfParser`) com `sortByPosition(false)` — **não** `true`. A fatura tem colunas lado a lado na mesma página (tabela de lançamentos + caixa de "encargos"); ordenar por posição visual mistura as duas numa linha só (visto com arquivo real: um fragmento de "período (10/08 a 09/09)" vazou pra dentro de uma linha de transação). Sem ordenar, o texto sai na ordem do content stream, que preserva as linhas da tabela corretas.
+
+Cada transação ocupa duas linhas no texto extraído — `DATA ESTABELECIMENTO [PARCELA] VALOR` seguida de `categoria  cidade` (ignorada, `LinhaFatura` não usa esses campos). O PDF só dá dia/mês, sem ano — resolvido contra o `ano`/`mes` que o usuário informa na URL: se o mês da transação é posterior ao mês de referência, é do ano anterior (parcela final de compra longa; nada é lançado no futuro numa fatura fechada). Não cobre virada de ano com mais de 12 meses de folga — sem exemplo real desse caso pra confirmar o comportamento certo.
+
+A fatura do Itaú tem duas tabelas com a mesma forma de linha: "Lançamentos: compras e saques" (gasto deste mês) e "Compras parceladas - próximas faturas" (prévia do mês seguinte, valor já comprometido pelo próprio banco — não é inferência nossa). O parser separa as duas em listas distintas; o controller chama `FaturaImportService.importar()` duas vezes, uma pro mês atual e outra pro mês seguinte. Quando a fatura real do mês seguinte for importada (CSV ou PDF), a idempotência por `(cartão, mês)` sobrescreve a prévia automaticamente.
 
 **Idempotência é por fatura, não por transação:** a unidade de import é `(cartão, mês de referência)`. Reimportar substitui o conteúdo daquele mês inteiro. Isso evita dedup frágil por hash de `data + valor + descrição`, que descartaria compras legitimamente idênticas.
 
 `CompraParcelada.faturaMesReferencia` (V24, nullable) marca qual fatura originou a compra — `NULL` em compras criadas manualmente. É essa coluna, não a data de vencimento, que decide o que uma reimportação apaga; evita que reimportar um mês destrua uma compra parcelada manual que caia por coincidência no mesmo cartão/mês.
 
-Cada linha importada vira uma `CompraParcelada` com `numParcelas=1` — sem passar pelo `ParcelamentoCalculator`, já que o mês da fatura é dado pelo usuário, não calculado. Se a fatura já mostra "Parcela 2/3" no título (parcelamento feito por outro emissor, ex: parcelamento da loja), esse texto é preservado literal na descrição, sem tentar linkar com as outras parcelas — o sistema não tem visibilidade da compra original, só do que apareceu nesta fatura.
+Cada linha importada vira uma `CompraParcelada` com `numParcelas=1` — sem passar pelo `ParcelamentoCalculator`, já que o mês da fatura é dado pelo usuário, não calculado. Se a fatura já mostra parcela no texto (parcelamento feito por outro emissor, ex: parcelamento da loja), isso é preservado literal (Nubank) ou formatado como "- Parcela N/M" (Itaú, que mostra o número separado) na descrição, sem tentar linkar com as outras parcelas — o sistema não tem visibilidade da compra original, só do que apareceu nesta fatura.
 
-O modelo de transação deve permanecer **agnóstico de formato** — o parser converte na fronteira (`LinhaFatura`), o domínio não sabe a origem. Isso mantém um parser OFX ou de outro banco barato de adicionar quando houver arquivo real para testar.
+O modelo de transação deve permanecer **agnóstico de formato** — cada parser converte pra `LinhaFatura` na fronteira, o domínio não sabe a origem. `ItauFaturaPdfParser.parseTexto(String, YearMonth)` é separado de `parse(InputStream, YearMonth)` justamente pra isso: a gramática de linha é testável com texto literal, sem precisar de um PDF de verdade no teste.
+
+`pdfbox` (3.0.2) e `commons-csv` já estavam no `pom.xml`, sobra do parser de investimentos deletado — reaproveitados aqui, zero dependência nova.
 
 ### Schema e Migrations
 
