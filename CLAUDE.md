@@ -142,6 +142,10 @@ Cada linha importada vira uma `CompraParcelada` com `numParcelas=1` — sem pass
 
 O modelo de transação deve permanecer **agnóstico de formato** — cada parser converte pra `LinhaFatura` na fronteira, o domínio não sabe a origem. `ItauFaturaPdfParser.parseTexto(String, YearMonth)` é separado de `parse(InputStream, YearMonth)` justamente pra isso: a gramática de linha é testável com texto literal, sem precisar de um PDF de verdade no teste.
 
+**Categorização é aprendida do histórico, não digitada de novo.** `FaturaImportService.aprenderCategorias()` monta um mapa `estabelecimento → última categoria usada` a partir de todas as compras já categorizadas do perfil (manuais ou importadas); toda linha nova busca nesse mapa pela mesma chave antes de criar a compra. Chave normalizada — `chaveEstabelecimento()` remove o sufixo `- Parcela N/M` e ignora maiúscula/minúscula, senão "AMAZON BRSAO P - Parcela 01/02" e "...- Parcela 02/02" nunca bateriam como o mesmo estabelecimento. Quando há mais de uma categoria histórica pro mesmo estabelecimento, vence a mais recente por `dataCompra`.
+
+**O mapa é montado antes de apagar as compras existentes do mês, não depois.** Reimportar um mês já categorizado (ex: banco corrigiu uma linha na fatura) precisa que a categoria dada àquele mês sobreviva pro reimport — se o `deleteAll` rodasse antes do aprendizado, a categorização mais recente do usuário seria perdida antes de poder ser reaproveitada. `FaturaImportServiceTest#reimportarMesmoMesPreservaCategoriaJaDada` existe pra pegar regressão nessa ordem especificamente (confirmado por mutação: invertendo a ordem, o teste falha).
+
 `pdfbox` (3.0.2) e `commons-csv` já estavam no `pom.xml`, sobra do parser de investimentos deletado — reaproveitados aqui, zero dependência nova.
 
 ### Export / Import e Backup
