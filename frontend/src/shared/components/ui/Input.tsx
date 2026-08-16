@@ -5,15 +5,17 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string
 }
 
-export function Input({ label, error, className = '', ...props }: InputProps) {
+export function Input({ label, error, className = '', type, ...props }: InputProps) {
+  const numeric = type === 'number' || type === 'date'
   return (
     <div className="flex flex-col gap-1">
-      {label && <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{label}</label>}
+      {label && <label className="text-xs font-semibold uppercase tracking-wide text-c-muted">{label}</label>}
       <input
+        type={type}
         {...props}
-        className={`bg-gray-50 dark:bg-slate-900 border ${error ? 'border-rose-500' : 'border-gray-300 dark:border-slate-600'} rounded-xl px-4 py-2 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-500 ${className}`}
+        className={`bg-bg-elevated border ${error ? 'border-overdue' : 'border-c-border'} rounded-xl px-3 py-2 text-c-primary placeholder-c-muted/60 focus:outline-none focus:ring-1 focus:ring-accent-500 focus:border-accent-500 ${numeric ? 'tabular-nums' : ''} ${className}`}
       />
-      {error && <span className="text-xs text-rose-400">{error}</span>}
+      {error && <span className="text-xs text-overdue">{error}</span>}
     </div>
   )
 }

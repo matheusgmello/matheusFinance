@@ -1,205 +1,85 @@
+/*
+  THESIS: slopFinance reads like a station departure board, not a SaaS
+  dashboard — every lançamento is a row ranked by vencimento, refusing the
+  glassmorphic-card fintech default this category always ships.
+  OWN-WORLD: matte graphite/steel ground; blue = brand/primary action,
+  amber = vencendo, red = atrasada, green = paga (state colors stay
+  independent of the brand color); single rounded sans (Manrope)
+  throughout, money/date values keep tabular-nums alignment without
+  switching typeface; generously rounded panels and controls, not sharp
+  board-literal edges — revised twice after user feedback: first pass was
+  "too square" with a cold mono/sans pairing, then the amber brand color
+  was swapped to blue and the product renamed to slopFinance.
+  STORY: user closes a fatura, opens the app, and reads in one pass what's
+  due, overdue, or settled — no hunting through decorative cards.
+  FIRST VIEWPORT: sidebar as a platform index (routes); main panel opens on
+  Painel Geral — a stat row of flap-style numerals above a board of the
+  nearest lançamentos, ranked by date.
+  FORM: split-flap concourse board (catalog challenger, seed 95f3232b,
+  assigned index 3, challenger 4), fused per user request with the
+  familiar dashboard structure — cards and charts kept, restyled in the
+  board's grammar rather than replaced by a literal airport-board staging.
+*/
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
-   TEMAS COMPLETOS — cada tema define fundo, sidebar, cards,
-   texto, bordas e cor de destaque (RGB sem parênteses para
-   suporte a opacity do Tailwind: rgb(var(--accent-500) / 0.5))
+   TEMAS — 2 temas comprometidos (não 10 variações decorativas):
+   noite (padrão, quadro à noite) e dia (alumínio escovado, luz
+   de terminal diurno). Âmbar/vermelho/verde carregam significado
+   de estado (vence/atrasa/paga) — não são "cor de marca" trocável.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── 1. Slate Dark (padrão) ─────────────────────────────────── */
-:root, .theme-slate-dark {
-  --bg-body:      15 23 42;      /* slate-900 */
-  --bg-card:      30 41 59;      /* slate-800 */
-  --bg-sidebar:   9  14 29;      /* mais escuro que slate-900 */
-  --bg-elevated:  51 65 85;      /* slate-700 */
-  --text-primary: 241 245 249;   /* slate-100 */
-  --text-muted:   148 163 184;   /* slate-400 */
-  --border-color: 51 65 85;      /* slate-700 */
+:root, .theme-noite {
+  --bg-body:      13  13  15;   /* flap black */
+  --bg-card:      27  27  30;   /* flap shadow */
+  --bg-sidebar:   9   9  11;
+  --bg-elevated:  38  38  42;
+  --text-primary: 242 242 242;  /* flap white */
+  --text-muted:   148 152 158;  /* steel frame, aa em fundo escuro */
+  --border-color: 45  45  50;
 
-  --accent-50:  236 253 245;
-  --accent-200: 167 243 208;
-  --accent-400: 52 211 153;
-  --accent-500: 16 185 129;      /* emerald-500 */
-  --accent-600: 5 150 105;
-  --accent-800: 6 95 70;
-  --accent-900: 6 78 59;
+  --accent-50:  234 241 254;
+  --accent-200: 185 208 252;
+  --accent-400: 100 153 251;
+  --accent-500: 61  125 250;    /* signal blue */
+  --accent-600: 44  99  214;
+  --accent-800: 29  63  140;
+  --accent-900: 20  42  94;
+
+  --state-paid:     61  191 128; /* lâmpada verde */
+  --state-due:      255 180 0;   /* lâmpada âmbar — independente da cor de marca */
+  --state-overdue:  217 58  58;  /* lâmpada vermelha */
+  --state-neutral:  110 114 122; /* lâmpada apagada */
 }
 
-/* ── 2. Midnight Blue ────────────────────────────────────────── */
-.theme-midnight-blue {
-  --bg-body:      10 14 40;
-  --bg-card:      19 26 62;
-  --bg-sidebar:   7  10 28;
-  --bg-elevated:  29 40 90;
-  --text-primary: 219 234 254;   /* blue-100 */
-  --text-muted:   147 197 253;   /* blue-300 */
-  --border-color: 37 57 120;
+.theme-dia {
+  --bg-body:      231 232 234;  /* alumínio escovado */
+  --bg-card:      247 247 248;  /* face do flap, iluminada */
+  --bg-sidebar:   217 219 222;
+  --bg-elevated:  236 237 239;
+  --text-primary: 23  24  26;
+  --text-muted:   91  95  102;
+  --border-color: 199 201 205;
 
-  --accent-50:  240 249 255;
-  --accent-200: 186 230 253;
-  --accent-400: 56 189 248;
-  --accent-500: 14 165 233;      /* sky-500 */
-  --accent-600: 2 132 199;
-  --accent-800: 7 89 133;
-  --accent-900: 12 74 110;
-}
+  --accent-50:  234 241 254;
+  --accent-200: 185 208 252;
+  --accent-400: 76  126 224;
+  --accent-500: 31  85  196;    /* azul escurecido p/ contraste AA em claro */
+  --accent-600: 23  65  154;
+  --accent-800: 16  43  103;
+  --accent-900: 10  28  68;
 
-/* ── 3. Forest ───────────────────────────────────────────────── */
-.theme-forest {
-  --bg-body:      5  20 12;
-  --bg-card:      11 35 20;
-  --bg-sidebar:   3  14  8;
-  --bg-elevated:  20 55 32;
-  --text-primary: 220 252 231;   /* green-100 */
-  --text-muted:   134 239 172;   /* green-300 */
-  --border-color: 22 78 40;
-
-  --accent-50:  236 253 245;
-  --accent-200: 167 243 208;
-  --accent-400: 52 211 153;
-  --accent-500: 16 185 129;      /* emerald-500 */
-  --accent-600: 5 150 105;
-  --accent-800: 6 95 70;
-  --accent-900: 6 78 59;
-}
-
-/* ── 4. Obsidian ─────────────────────────────────────────────── */
-.theme-obsidian {
-  --bg-body:       9  9 11;      /* zinc-950 */
-  --bg-card:      24 24 27;      /* zinc-900 */
-  --bg-sidebar:    4  4  6;
-  --bg-elevated:  39 39 42;      /* zinc-800 */
-  --text-primary: 250 250 250;   /* zinc-50 */
-  --text-muted:   161 161 170;   /* zinc-400 */
-  --border-color:  63 63 70;     /* zinc-700 */
-
-  --accent-50:  245 243 255;
-  --accent-200: 221 214 254;
-  --accent-400: 167 139 250;
-  --accent-500: 139 92 246;      /* violet-500 */
-  --accent-600: 124 58 237;
-  --accent-800: 91 33 182;
-  --accent-900: 76 29 149;
-}
-
-/* ── 5. Crimson ──────────────────────────────────────────────── */
-.theme-crimson {
-  --bg-body:      25  5 10;
-  --bg-card:      45  8 18;
-  --bg-sidebar:   18  3  7;
-  --bg-elevated:  70 12 28;
-  --text-primary: 255 228 230;   /* rose-100 */
-  --text-muted:   253 164 175;   /* rose-300 */
-  --border-color: 100 17 40;
-
-  --accent-50:  255 241 242;
-  --accent-200: 254 205 211;
-  --accent-400: 251 113 133;
-  --accent-500: 244 63 94;       /* rose-500 */
-  --accent-600: 225 29 72;
-  --accent-800: 159 18 57;
-  --accent-900: 136 19 55;
-}
-
-/* ── 6. Cloud (light) ────────────────────────────────────────── */
-.theme-cloud {
-  --bg-body:      248 250 252;   /* slate-50 */
-  --bg-card:      255 255 255;   /* white */
-  --bg-sidebar:   241 245 249;   /* slate-100 */
-  --bg-elevated:  226 232 240;   /* slate-200 */
-  --text-primary:  15 23 42;     /* slate-900 */
-  --text-muted:   100 116 139;   /* slate-500 */
-  --border-color: 203 213 225;   /* slate-300 */
-
-  --accent-50:  239 246 255;
-  --accent-200: 191 219 254;
-  --accent-400: 96 165 250;
-  --accent-500: 59 130 246;      /* blue-500 */
-  --accent-600: 37 99 235;
-  --accent-800: 30 64 175;
-  --accent-900: 30 58 138;
-}
-
-/* ── 7. Sage (light) ─────────────────────────────────────────── */
-.theme-sage {
-  --bg-body:      240 253 244;   /* green-50 */
-  --bg-card:      255 255 255;   /* white */
-  --bg-sidebar:   220 252 231;   /* green-100 */
-  --bg-elevated:  187 247 208;   /* green-200 */
-  --text-primary:   5 46 22;     /* green-950 */
-  --text-muted:    74 122 84;
-  --border-color: 167 243 208;   /* green-200 */
-
-  --accent-50:  240 253 250;
-  --accent-200: 153 246 228;
-  --accent-400: 45 212 191;
-  --accent-500: 20 184 166;      /* teal-500 */
-  --accent-600: 13 148 136;
-  --accent-800: 17 94 89;
-  --accent-900: 19 78 74;
-}
-
-/* ── 8. Lavender (light) ─────────────────────────────────────── */
-.theme-lavender {
-  --bg-body:      250 245 255;   /* violet-50 */
-  --bg-card:      255 255 255;   /* white */
-  --bg-sidebar:   245 243 255;   /* violet-100 approx */
-  --bg-elevated:  237 233 254;   /* violet-100 */
-  --text-primary:  46 16 101;    /* violet-950 */
-  --text-muted:   109 40 217;    /* violet-600 */
-  --border-color: 221 214 254;   /* violet-200 */
-
-  --accent-50:  245 243 255;
-  --accent-200: 221 214 254;
-  --accent-400: 167 139 250;
-  --accent-500: 139 92 246;      /* violet-500 */
-  --accent-600: 124 58 237;
-  --accent-800: 91 33 182;
-  --accent-900: 76 29 149;
-}
-
-/* ── 9. Sand (light) ─────────────────────────────────────────── */
-.theme-sand {
-  --bg-body:      255 251 235;   /* amber-50 */
-  --bg-card:      255 255 255;   /* white */
-  --bg-sidebar:   254 243 199;   /* amber-100 */
-  --bg-elevated:  253 230 138;   /* amber-200 */
-  --text-primary: 120 53 15;     /* amber-900 */
-  --text-muted:   180 83 9;      /* amber-700 */
-  --border-color: 253 230 138;   /* amber-200 */
-
-  --accent-50:  255 251 235;
-  --accent-200: 253 230 138;
-  --accent-400: 251 191 36;
-  --accent-500: 245 158 11;      /* amber-500 */
-  --accent-600: 217 119 6;
-  --accent-800: 146 64 14;
-  --accent-900: 120 53 15;
-}
-
-/* ── 10. Arctic (light) ──────────────────────────────────────── */
-.theme-arctic {
-  --bg-body:      240 249 255;   /* sky-50 */
-  --bg-card:      255 255 255;   /* white */
-  --bg-sidebar:   224 242 254;   /* sky-100 */
-  --bg-elevated:  186 230 253;   /* sky-200 */
-  --text-primary:  12 74 110;    /* sky-900 */
-  --text-muted:    14 116 144;   /* sky-600 */
-  --border-color: 186 230 253;   /* sky-200 */
-
-  --accent-50:  240 249 255;
-  --accent-200: 186 230 253;
-  --accent-400: 56 189 248;
-  --accent-500: 14 165 233;      /* sky-500 */
-  --accent-600: 2 132 199;
-  --accent-800: 7 89 133;
-  --accent-900: 12 74 110;
+  --state-paid:     21  128 73;
+  --state-due:      196 130 0;
+  --state-overdue:  185 28  28;
+  --state-neutral:  130 134 140;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BASE STYLES — usa CSS vars para fundo e texto
+   BASE STYLES
    ═══════════════════════════════════════════════════════════════ */
 body {
   background-color: rgb(var(--bg-body));
@@ -209,4 +89,8 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+::selection {
+  background: rgb(var(--accent-500) / 0.3);
 }

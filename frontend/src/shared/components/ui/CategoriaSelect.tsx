@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { categoriasApi, CORES } from '../../../domains/configuracao/api'
 import { useProfile } from '../../context/ProfileContext'
 
-const dot = (cor: string) => CORES.find(c => c.value === cor)?.tw ?? 'bg-slate-500'
+const dot = (cor: string) => CORES.find(c => c.value === cor)?.tw ?? 'bg-neutral'
 
-const SELECT_CLS = 'bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-3 py-1.5 text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent-500 w-full'
+const SELECT_CLS = 'bg-bg-elevated border border-c-border rounded-xl px-3 py-2 text-sm text-c-primary focus:outline-none focus:ring-1 focus:ring-accent-500 focus:border-accent-500 w-full'
 
 interface Props {
   value: string
@@ -23,7 +23,7 @@ export function CategoriaSelect({ value, onChange, label = 'Categoria', placehol
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{label}</label>
+      <label className="text-xs font-semibold uppercase tracking-wide text-c-muted">{label}</label>
       <div className="relative">
         {value && (
           <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ${dot(categorias.find(c => c.nome === value)?.cor ?? '')}`} />

@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Manrope', 'sans-serif'],
       },
       fontSize: {
         xs:   ['13px', { lineHeight: '1.4' }],
@@ -27,6 +27,10 @@ export default {
           800: 'rgb(var(--accent-800) / <alpha-value>)',
           900: 'rgb(var(--accent-900) / <alpha-value>)',
         },
+        due:     'rgb(var(--state-due) / <alpha-value>)',
+        overdue: 'rgb(var(--state-overdue) / <alpha-value>)',
+        paid:    'rgb(var(--state-paid) / <alpha-value>)',
+        neutral: 'rgb(var(--state-neutral) / <alpha-value>)',
         'bg-body':    'rgb(var(--bg-body) / <alpha-value>)',
         'bg-card':    'rgb(var(--bg-card) / <alpha-value>)',
         'bg-sidebar': 'rgb(var(--bg-sidebar) / <alpha-value>)',

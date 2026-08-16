@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gray-on-color",
+        "value": "*",
+        "files": [
+          "frontend/src/pages/dashboard/DashboardPage.tsx"
+        ],
+        "createdAt": "2026-08-11T00:20:41.611Z",
+        "reason": "Icon buttons: text-gray-400 default with hover:text-* + hover:bg-* firing together; gray and colored background never coexist"
+      }
+    ]
+  }
+}

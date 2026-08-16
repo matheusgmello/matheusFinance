@@ -18,19 +18,19 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div className="flex-1 p-8">
-          <div className="max-w-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-2xl p-6 space-y-3">
-            <h2 className="text-base font-semibold text-rose-700 dark:text-rose-300">
+          <div className="max-w-xl bg-overdue/10 border border-overdue/30 rounded-xl p-6 space-y-3">
+            <h2 className="text-base font-semibold text-overdue">
               Erro ao renderizar a página
             </h2>
-            <p className="text-sm text-rose-600 dark:text-rose-400 font-mono break-all">
+            <p className="text-sm text-overdue break-all">
               {this.state.error.message}
             </p>
-            <pre className="text-xs text-rose-500 dark:text-rose-500 overflow-auto max-h-48 whitespace-pre-wrap">
+            <pre className="text-xs text-overdue/80 overflow-auto max-h-48 whitespace-pre-wrap">
               {this.state.error.stack}
             </pre>
             <button
               onClick={() => this.setState({ error: null })}
-              className="text-sm font-medium text-rose-600 dark:text-rose-400 underline"
+              className="text-sm font-medium text-overdue underline"
             >
               Tentar novamente
             </button>

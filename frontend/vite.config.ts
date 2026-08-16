@@ -9,11 +9,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'matheusFinance',
+        name: 'slopFinance',
         short_name: 'Finanças',
         description: 'Controle financeiro pessoal',
-        theme_color: '#10b981',
-        background_color: '#0f172a',
+        theme_color: '#3D7DFA',
+        background_color: '#0D0D0F',
         display: 'standalone',
         start_url: '/',
         icons: [
