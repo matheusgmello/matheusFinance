@@ -28,6 +28,9 @@ backend/src/main/resources/application-local.yml
 Thumbs.db
 *:Zone.Identifier
 
+# impeccable local session cache (not meaningful across machines)
+.impeccable/hook.cache.json
+
 # Faturas reais usadas como referência de import (dado financeiro pessoal)
 /*.csv
 /*.pdf

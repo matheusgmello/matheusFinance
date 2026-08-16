@@ -1,20 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { perfisApi, Perfil } from '../../domains/configuracao/api'
+import { perfisApi, Perfil, pushApi } from '../../domains/configuracao/api'
 import { useProfile } from '../../shared/context/ProfileContext'
 import { useAuth } from '../../shared/context/AuthContext'
-import { Button } from '../../shared/components/ui/Button'
-import { Input } from '../../shared/components/ui/Input'
-import { Badge } from '../../shared/components/ui/Badge'
+import { Button, Input, Badge, PageHeader } from '../../shared/components/ui'
 import {
   Check, Trash2, Plus, WifiOff, Download, Upload,
   AlertTriangle, X, ShieldAlert, Bell, BellOff,
 } from 'lucide-react'
-import { pushApi } from '../../domains/configuracao/api'
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4">
+    <h2 className="text-xs font-semibold text-c-muted uppercase tracking-widest mb-4">
       {children}
     </h2>
   )
@@ -22,7 +19,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function SettingsCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 ${className}`}>
+    <div className={`bg-bg-card rounded-xl border border-c-border ${className}`}>
       {children}
     </div>
   )
@@ -86,33 +83,33 @@ function PushSection() {
       <SectionTitle>Notificações Push</SectionTitle>
       <SettingsCard>
         <div className="p-5 flex items-start gap-4">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border ${
             status === 'subscribed'
-              ? 'bg-accent-500/15 text-accent-600 dark:text-accent-400'
-              : 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500'
+              ? 'bg-paid/10 text-paid border-paid/30'
+              : 'bg-bg-elevated text-c-muted border-c-border'
           }`}>
-            {status === 'subscribed' ? <Bell size={20} /> : <BellOff size={20} />}
+            {status === 'subscribed' ? <Bell size={18} /> : <BellOff size={18} />}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+            <p className="text-sm font-medium text-c-primary">
               Alertas no dispositivo
             </p>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-              Receba notificações de alertas de preço e proventos mesmo com o app fechado.
+            <p className="text-xs text-c-muted mt-0.5">
+              Receba notificações de alertas de vencimento mesmo com o app fechado.
               {!supported && ' (Não suportado neste navegador)'}
             </p>
-            {msg && <p className="text-xs mt-1.5 text-accent-600 dark:text-accent-400">{msg}</p>}
+            {msg && <p className="text-xs mt-1.5 text-paid">{msg}</p>}
             {status === 'denied' && (
-              <p className="text-xs mt-1 text-rose-500">Permissão negada. Habilite nas configurações do navegador.</p>
+              <p className="text-xs mt-1 text-overdue">Permissão negada. Habilite nas configurações do navegador.</p>
             )}
           </div>
           <button
             onClick={status === 'subscribed' ? unsubscribe : subscribe}
             disabled={loading || !supported}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
+            className={`px-3 py-1.5 rounded-xl text-xs uppercase tracking-wide font-medium transition-colors disabled:opacity-50 ${
               status === 'subscribed'
-                ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100'
-                : 'bg-accent-500 hover:bg-accent-600 text-white'
+                ? 'bg-overdue/10 text-overdue hover:bg-overdue/20'
+                : 'bg-accent-500 hover:bg-accent-400 text-white'
             }`}
           >
             {loading ? '…' : status === 'subscribed' ? 'Desativar' : 'Ativar'}
@@ -203,35 +200,28 @@ export default function ConfiguracoesPage() {
   })
 
   return (
-    <div className="p-6 md:p-8 space-y-10">
+    <div className="space-y-10">
+      <PageHeader title="Configurações" subtitle="Gerencie seus perfis e dados" />
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Configurações</h1>
-        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Gerencie seus perfis e dados</p>
-      </div>
-
-      {/* ── Perfis ────────────────────────────────────────────────────────── */}
       <section>
         <SectionTitle>Perfis</SectionTitle>
 
         {isError && (
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 mb-4">
-            <WifiOff size={16} className="text-rose-500 flex-shrink-0" />
-            <p className="text-sm text-rose-700 dark:text-rose-300 flex-1">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-overdue/10 border border-overdue/30 mb-4">
+            <WifiOff size={16} className="text-overdue flex-shrink-0" />
+            <p className="text-sm text-overdue flex-1">
               Backend inacessível —{' '}
-              <span className="font-mono text-xs">http://localhost:8085</span>
+              <span className="text-xs">http://localhost:8085</span>
             </p>
-            <button onClick={() => refetch()} className="text-xs font-semibold text-rose-600 dark:text-rose-400 underline whitespace-nowrap">
+            <button onClick={() => refetch()} className="text-xs font-semibold text-overdue underline whitespace-nowrap">
               Tentar novamente
             </button>
           </div>
         )}
 
         <SettingsCard>
-          {/* Criar novo perfil */}
-          <div className="p-5 border-b border-gray-100 dark:border-slate-700">
-            <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">Novo perfil</p>
+          <div className="p-5 border-b border-c-border">
+            <p className="text-sm font-semibold text-c-primary mb-3">Novo perfil</p>
             <div className="flex gap-2">
               <Input
                 placeholder="Nome do perfil"
@@ -241,45 +231,35 @@ export default function ConfiguracoesPage() {
                 className="flex-1"
               />
               <Button onClick={() => criar.mutate()} disabled={!nome.trim() || criar.isPending}>
-                <Plus size={15} className="inline mr-1" />
+                <Plus size={14} className="inline mr-1" />
                 {criar.isPending ? 'Criando…' : 'Criar'}
               </Button>
             </div>
-            {criarErro && <p className="text-xs text-rose-500 mt-2">{criarErro}</p>}
+            {criarErro && <p className="text-xs text-overdue mt-2">{criarErro}</p>}
           </div>
 
-          {/* Lista de perfis */}
           {isLoading ? (
-            <div className="p-5">
-              <p className="text-sm text-gray-400 dark:text-slate-500">Carregando…</p>
-            </div>
+            <div className="p-5"><p className="text-sm text-c-muted">Carregando…</p></div>
           ) : perfis.length === 0 ? (
-            <div className="p-5">
-              <p className="text-sm text-gray-400 dark:text-slate-500">Nenhum perfil criado ainda.</p>
-            </div>
+            <div className="p-5"><p className="text-sm text-c-muted">Nenhum perfil criado ainda.</p></div>
           ) : (
-            <ul className="divide-y divide-gray-100 dark:divide-slate-700">
+            <ul className="divide-y divide-c-border">
               {perfis.map((p: Perfil) => (
-                <li key={p.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
-                  {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-accent-500/15 flex items-center justify-center text-accent-600 dark:text-accent-400 font-bold text-base flex-shrink-0">
+                <li key={p.id} className="flex items-center gap-4 px-5 py-4 hover:bg-bg-elevated transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-accent-500/10 border border-accent-500/30 flex items-center justify-center text-accent-500 font-bold text-base flex-shrink-0">
                     {p.nome.charAt(0).toUpperCase()}
                   </div>
-
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 dark:text-slate-100 truncate">{p.nome}</span>
+                      <span className="font-medium text-c-primary truncate">{p.nome}</span>
                       {activeProfile?.id === p.id && <Badge color="accent">Ativo</Badge>}
                     </div>
-                    <span className="text-xs text-gray-400 dark:text-slate-500">ID #{p.id}</span>
+                    <span className="text-xs text-c-muted">ID #{p.id}</span>
                   </div>
-
-                  {/* Ações */}
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     {activeProfile?.id !== p.id && (
                       <Button variant="primary" onClick={() => setActiveProfile(p)}>
-                        <Check size={13} className="inline mr-1" /> Usar
+                        <Check size={12} className="inline mr-1" /> Usar
                       </Button>
                     )}
                     <Button variant="ghost" onClick={() => handleExportar(p.id, p.nome)} disabled={exportandoId === p.id} title="Exportar backup">
@@ -294,12 +274,11 @@ export default function ConfiguracoesPage() {
             </ul>
           )}
 
-          {/* Importar */}
-          <div className="p-5 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between gap-4">
+          <div className="p-5 border-t border-c-border flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-slate-300">Importar perfil</p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
-                Restaura um backup <span className="font-mono">.json</span>
+              <p className="text-sm font-medium text-c-primary">Importar perfil</p>
+              <p className="text-xs text-c-muted mt-0.5">
+                Restaura um backup <span className="">.json</span>
               </p>
             </div>
             <div className="flex-shrink-0">
@@ -312,26 +291,25 @@ export default function ConfiguracoesPage() {
             </div>
           </div>
           {(importOk || importErro) && (
-            <p className={`px-5 pb-4 text-xs ${importOk ? 'text-accent-600 dark:text-accent-400' : 'text-rose-500'}`}>
+            <p className={`px-5 pb-4 text-xs ${importOk ? 'text-paid' : 'text-overdue'}`}>
               {importOk || importErro}
             </p>
           )}
         </SettingsCard>
       </section>
 
-      {/* ── Zona de Perigo ────────────────────────────────────────────────── */}
       <section>
         <SectionTitle>Zona de perigo</SectionTitle>
-        <SettingsCard className="border-rose-200 dark:border-rose-800/60">
+        <SettingsCard className="border-overdue/30">
           <div className="p-5 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center flex-shrink-0">
-              <ShieldAlert size={18} className="text-rose-500" />
+            <div className="w-10 h-10 rounded-full bg-overdue/10 border border-overdue/30 flex items-center justify-center flex-shrink-0">
+              <ShieldAlert size={18} className="text-overdue" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Limpar dados do perfil</p>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+              <p className="text-sm font-semibold text-c-primary">Limpar dados do perfil</p>
+              <p className="text-xs text-c-muted mt-0.5">
                 Apaga permanentemente todos os dados de{' '}
-                <strong className="text-gray-700 dark:text-slate-300">{perfilNome ?? activeProfile?.nome ?? 'este perfil'}</strong>.
+                <strong className="text-c-primary">{perfilNome ?? activeProfile?.nome ?? 'este perfil'}</strong>.
                 Esta ação não pode ser desfeita.
               </p>
             </div>
@@ -347,40 +325,39 @@ export default function ConfiguracoesPage() {
         </SettingsCard>
       </section>
 
-      {/* Modal Limpar Dados */}
       {showLimpar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-bg-card border border-c-border rounded-xl shadow-2xl w-full max-w-sm p-6 space-y-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                  <AlertTriangle size={20} className="text-rose-500" />
+                <div className="w-10 h-10 rounded-full bg-overdue/10 border border-overdue/30 flex items-center justify-center">
+                  <AlertTriangle size={20} className="text-overdue" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">Limpar Dados</h2>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Esta ação não pode ser desfeita</p>
+                  <h2 className="text-base font-bold text-c-primary">Limpar Dados</h2>
+                  <p className="text-xs text-c-muted">Esta ação não pode ser desfeita</p>
                 </div>
               </div>
-              <button onClick={() => setShowLimpar(false)} className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300">
+              <button onClick={() => setShowLimpar(false)} className="text-c-muted hover:text-c-primary">
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
-              Todos os dados do perfil <strong>{perfilNome}</strong> serão apagados permanentemente:
-              compras, cartões, recorrentes, investimentos, metas, alertas e histórico.
+            <p className="text-sm text-c-muted leading-relaxed">
+              Todos os dados do perfil <strong className="text-c-primary">{perfilNome}</strong> serão apagados permanentemente:
+              compras, cartões, recorrentes, metas, alertas e histórico.
             </p>
-            {limparError && <p className="text-xs text-rose-500">{limparError}</p>}
+            {limparError && <p className="text-xs text-overdue">{limparError}</p>}
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => setShowLimpar(false)}
-                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-600 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                className="flex-1 px-4 py-2 rounded-xl border border-c-border text-sm font-medium text-c-primary hover:bg-bg-elevated transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={() => limpar.mutate()}
                 disabled={limpar.isPending}
-                className="flex-1 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+                className="flex-1 px-4 py-2 rounded-xl bg-overdue hover:brightness-110 disabled:opacity-50 text-white text-sm font-medium transition-colors"
               >
                 {limpar.isPending ? 'Limpando…' : 'Sim, apagar tudo'}
               </button>
@@ -389,7 +366,6 @@ export default function ConfiguracoesPage() {
         </div>
       )}
 
-      {/* Notificações push */}
       <PushSection />
     </div>
   )

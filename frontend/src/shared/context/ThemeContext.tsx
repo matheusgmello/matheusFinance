@@ -1,16 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-export type ThemeKey =
-  | 'slate-dark'
-  | 'midnight-blue'
-  | 'forest'
-  | 'obsidian'
-  | 'crimson'
-  | 'cloud'
-  | 'sage'
-  | 'lavender'
-  | 'sand'
-  | 'arctic'
+export type ThemeKey = 'noite' | 'dia'
 
 export interface ThemeDefinition {
   key: ThemeKey
@@ -23,93 +13,24 @@ export interface ThemeDefinition {
 
 export const THEMES: ThemeDefinition[] = [
   {
-    key: 'slate-dark',
-    label: 'Slate Dark',
+    key: 'noite',
+    label: 'Noite',
     dark: true,
-    preview: '#0f172a',
-    accent: '#10b981',
-    description: 'Escuro clássico com verde esmeralda',
+    preview: '#0d0d0f',
+    accent: '#3D7DFA',
+    description: 'Quadro de partidas à noite — grafite e âmbar',
   },
   {
-    key: 'midnight-blue',
-    label: 'Midnight Blue',
-    dark: true,
-    preview: '#0a0e28',
-    accent: '#0ea5e9',
-    description: 'Azul profundo da meia-noite',
-  },
-  {
-    key: 'forest',
-    label: 'Forest',
-    dark: true,
-    preview: '#05140c',
-    accent: '#10b981',
-    description: 'Verde floresta escuro e profundo',
-  },
-  {
-    key: 'obsidian',
-    label: 'Obsidian',
-    dark: true,
-    preview: '#09090b',
-    accent: '#8b5cf6',
-    description: 'Cinza carvão com destaque violeta',
-  },
-  {
-    key: 'crimson',
-    label: 'Crimson',
-    dark: true,
-    preview: '#19050a',
-    accent: '#f43f5e',
-    description: 'Bordô escuro com destaque carmesim',
-  },
-  {
-    key: 'cloud',
-    label: 'Cloud',
+    key: 'dia',
+    label: 'Dia',
     dark: false,
-    preview: '#f8fafc',
-    accent: '#3b82f6',
-    description: 'Claro e minimalista com azul limpo',
-  },
-  {
-    key: 'sage',
-    label: 'Sage',
-    dark: false,
-    preview: '#f0fdf4',
-    accent: '#14b8a6',
-    description: 'Verde sálvia suave e natural',
-  },
-  {
-    key: 'lavender',
-    label: 'Lavender',
-    dark: false,
-    preview: '#faf5ff',
-    accent: '#8b5cf6',
-    description: 'Lilás delicado com destaque violeta',
-  },
-  {
-    key: 'sand',
-    label: 'Sand',
-    dark: false,
-    preview: '#fffbeb',
-    accent: '#f59e0b',
-    description: 'Areia quente com destaque âmbar',
-  },
-  {
-    key: 'arctic',
-    label: 'Arctic',
-    dark: false,
-    preview: '#f0f9ff',
-    accent: '#0ea5e9',
-    description: 'Azul gelo claro e sereno',
+    preview: '#e7e8ea',
+    accent: '#1F55C4',
+    description: 'Alumínio escovado sob luz de terminal diurno',
   },
 ]
 
-export type AccentColor = ThemeKey
-export const ACCENT_THEMES = THEMES.map(t => ({
-  key: t.key,
-  label: t.label,
-  color: t.accent,
-}))
+const OLD_DARK_KEYS = new Set(['slate-dark', 'midnight-blue', 'forest', 'obsidian', 'crimson'])
 
 interface ThemeContextValue {
   themeKey: ThemeKey
@@ -117,43 +38,27 @@ interface ThemeContextValue {
   setTheme: (key: ThemeKey) => void
   isDark: boolean
   theme: 'light' | 'dark'
-  accentColor: ThemeKey
-  setAccentColor: (c: ThemeKey) => void
   toggleTheme: () => void
-  themeMode: 'light' | 'dark'
-  setThemeMode: (m: 'light' | 'dark') => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-const DEFAULT_THEME: ThemeKey = 'slate-dark'
+const DEFAULT_THEME: ThemeKey = 'noite'
+
+function resolveInitialTheme(): ThemeKey {
+  const saved = localStorage.getItem('appTheme')
+  if (saved === 'noite' || saved === 'dia') return saved
+  if (saved) return OLD_DARK_KEYS.has(saved) ? 'noite' : 'dia'
+  return DEFAULT_THEME
+}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeKey>(() => {
-    const saved = localStorage.getItem('appTheme') as ThemeKey | null
-    if (!saved) {
-      const oldMode = localStorage.getItem('themeMode')
-      const oldAccent = localStorage.getItem('accentColor')
-      if (oldMode === 'light') {
-        return oldAccent === 'amber' ? 'sand'
-          : oldAccent === 'sky' || oldAccent === 'cyan' ? 'arctic'
-          : oldAccent === 'violet' || oldAccent === 'indigo' ? 'lavender'
-          : 'cloud'
-      }
-      return oldAccent === 'violet' || oldAccent === 'indigo' ? 'obsidian'
-        : oldAccent === 'rose' || oldAccent === 'pink' ? 'crimson'
-        : oldAccent === 'sky' || oldAccent === 'blue' || oldAccent === 'cyan' ? 'midnight-blue'
-        : 'slate-dark'
-    }
-    return THEMES.find(t => t.key === saved) ? saved : DEFAULT_THEME
-  })
-
+  const [theme, setThemeState] = useState<ThemeKey>(resolveInitialTheme)
   const themeDefinition = THEMES.find(t => t.key === theme)!
 
   useEffect(() => {
     const el = document.documentElement
-    const allClasses = Array.from(el.classList)
-    allClasses.forEach(cls => {
+    Array.from(el.classList).forEach(cls => {
       if (cls.startsWith('theme-')) el.classList.remove(cls)
     })
     el.classList.add(`theme-${theme}`)
@@ -162,23 +67,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme, themeDefinition.dark])
 
   const setTheme = (key: ThemeKey) => setThemeState(key)
-  const toggleTheme = () => {
-    setTheme(themeDefinition.dark ? 'cloud' : 'slate-dark')
-  }
-  const isDark = themeDefinition.dark
+  const toggleTheme = () => setTheme(theme === 'noite' ? 'dia' : 'noite')
 
   return (
     <ThemeContext.Provider value={{
       themeKey: theme,
       themeDefinition,
       setTheme,
-      isDark,
-      theme: isDark ? 'dark' : 'light',
-      accentColor: theme,
-      setAccentColor: setTheme,
+      isDark: themeDefinition.dark,
+      theme: themeDefinition.dark ? 'dark' : 'light',
       toggleTheme,
-      themeMode: isDark ? 'dark' : 'light',
-      setThemeMode: (m) => setTheme(m === 'dark' ? 'slate-dark' : 'cloud'),
     }}>
       {children}
     </ThemeContext.Provider>

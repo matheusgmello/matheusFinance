@@ -2,9 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { cartoesApi } from '../../domains/cartao/api'
 import { faturaApi, ResultadoImportFatura } from '../../domains/compra/api'
-import { Card } from '../../shared/components/ui/Card'
-import { Button } from '../../shared/components/ui/Button'
-import { PageHeader } from '../../shared/components/ui/PageHeader'
+import { Card, Button, PageHeader } from '../../shared/components/ui'
 import { Upload } from 'lucide-react'
 
 const MESES = [
@@ -12,7 +10,7 @@ const MESES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
-const SELECT_CLS = 'bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent-500'
+const SELECT_CLS = 'bg-bg-elevated border border-c-border rounded-xl px-4 py-2 text-c-primary focus:outline-none focus:ring-1 focus:ring-accent-500'
 
 export default function ImportarFaturaPage() {
   const hoje = new Date()
@@ -47,7 +45,7 @@ export default function ImportarFaturaPage() {
 
       <Card className="max-w-lg space-y-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Cartão</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-c-muted">Cartão</label>
           <select value={cartaoId} onChange={e => setCartaoId(e.target.value)} className={SELECT_CLS}>
             <option value="">Selecione...</option>
             {cartoes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
@@ -55,7 +53,7 @@ export default function ImportarFaturaPage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Banco</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-c-muted">Banco</label>
           <select value={banco} onChange={e => setBanco(e.target.value)} className={SELECT_CLS}>
             <option value="nubank">Nubank</option>
             <option value="itau">Itaú</option>
@@ -64,41 +62,41 @@ export default function ImportarFaturaPage() {
 
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Mês de referência</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-c-muted">Mês de referência</label>
             <select value={mes} onChange={e => setMes(Number(e.target.value))} className={SELECT_CLS}>
               {MESES.map((nome, i) => <option key={i} value={i + 1}>{nome}</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Ano</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-c-muted">Ano</label>
             <input
               type="number" value={ano} onChange={e => setAno(Number(e.target.value))}
-              className={SELECT_CLS}
+              className={`${SELECT_CLS} tabular-nums`}
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Arquivo</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-c-muted">Arquivo</label>
           <input
             type="file" accept=".csv,.pdf"
             onChange={e => setArquivo(e.target.files?.[0] ?? null)}
-            className="text-sm text-gray-700 dark:text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-accent-500/15 file:text-accent-600 dark:file:text-accent-400 file:font-medium"
+            className="text-sm text-c-muted file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border file:border-accent-500/30 file:bg-accent-500/10 file:text-accent-500 file:font-medium file:text-xs file:uppercase file:tracking-wide"
           />
         </div>
 
-        {erro && <p className="text-sm text-rose-500">{erro}</p>}
+        {erro && <p className="text-sm text-overdue">{erro}</p>}
 
         <Button onClick={handleSubmit} disabled={importar.isPending} className="flex items-center gap-2">
-          <Upload size={16} />
+          <Upload size={14} />
           {importar.isPending ? 'Importando…' : 'Importar'}
         </Button>
 
         {resultado && (
-          <div className="pt-2 border-t border-gray-200 dark:border-slate-700 space-y-1">
+          <div className="pt-2 border-t border-c-border space-y-1">
             {resultado.map((r, i) => (
-              <p key={i} className="text-sm text-gray-700 dark:text-slate-300">
-                {MESES[r.mes - 1]}/{r.ano}: <strong>{r.linhasImportadas}</strong> linha(s) importada(s), vencimento {new Date(r.vencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
+              <p key={i} className="text-sm text-c-primary">
+                {MESES[r.mes - 1]}/{r.ano}: <strong className="text-paid">{r.linhasImportadas}</strong> linha(s) importada(s), vencimento {new Date(r.vencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
               </p>
             ))}
           </div>

@@ -2,21 +2,10 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { metasApi, Meta, MetaRequest } from '../../domains/meta/api'
 import { useProfile } from '../../shared/context/ProfileContext'
-import { Card } from '../../shared/components/ui/Card'
-import { Button } from '../../shared/components/ui/Button'
-import { Input } from '../../shared/components/ui/Input'
+import { Card, Button, Input, PageHeader, ProgressBar } from '../../shared/components/ui'
 import { Target, Plus, X, Trash2, PlusCircle } from 'lucide-react'
 
 const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-
-function Barra({ pct }: { pct: number }) {
-  const cor = pct >= 100 ? 'bg-accent-500' : pct >= 60 ? 'bg-amber-500' : 'bg-violet-500'
-  return (
-    <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-700 overflow-hidden">
-      <div className={`h-full rounded-full transition-all ${cor}`} style={{ width: `${Math.min(pct, 100)}%` }} />
-    </div>
-  )
-}
 
 function MetaCard({ meta }: { meta: Meta }) {
   const qc = useQueryClient()
@@ -43,35 +32,34 @@ function MetaCard({ meta }: { meta: Meta }) {
     <Card>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-            concluida ? 'bg-accent-500/10 text-accent-600 dark:text-accent-400'
-                      : 'bg-violet-500/10 text-violet-600 dark:text-violet-400'
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${
+            concluida ? 'bg-paid/10 text-paid border-paid/30' : 'bg-accent-500/10 text-accent-500 border-accent-500/30'
           }`}>
-            <Target size={20} />
+            <Target size={18} />
           </div>
           <div>
-            <p className="font-semibold text-gray-900 dark:text-slate-100">{meta.nome}</p>
+            <p className="font-semibold text-c-primary">{meta.nome}</p>
             {prazoFmt && (
-              <p className={`text-xs mt-0.5 ${atrasada ? 'text-rose-500' : 'text-gray-400 dark:text-slate-500'}`}>
+              <p className={`text-xs mt-0.5 ${atrasada ? 'text-overdue' : 'text-c-muted'}`}>
                 {atrasada ? 'Prazo vencido: ' : 'Prazo: '}{prazoFmt}
               </p>
             )}
           </div>
         </div>
-        <button onClick={() => deletar.mutate()} className="text-gray-300 dark:text-slate-600 hover:text-rose-500 transition">
+        <button onClick={() => deletar.mutate()} className="text-c-muted hover:text-overdue transition">
           <Trash2 size={16} />
         </button>
       </div>
 
       <div className="space-y-2 mb-3">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-slate-400">{BRL(meta.valorAtual)} de {BRL(meta.valorAlvo)}</span>
-          <span className={`font-semibold ${concluida ? 'text-accent-600 dark:text-accent-400' : 'text-violet-600 dark:text-violet-400'}`}>
+          <span className="text-c-muted">{BRL(meta.valorAtual)} de {BRL(meta.valorAlvo)}</span>
+          <span className={`font-semibold ${concluida ? 'text-paid' : 'text-accent-500'}`}>
             {meta.percentual.toFixed(0)}%
           </span>
         </div>
-        <Barra pct={meta.percentual} />
-        <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500">
+        <ProgressBar pct={meta.percentual} tone={concluida ? 'paid' : 'accent'} />
+        <div className="flex justify-between text-xs text-c-muted">
           <span>{concluida ? 'Meta concluída!' : `Faltam ${BRL(meta.faltam)}`}</span>
           {previsaoFmt && !concluida && <span>Previsão: {previsaoFmt}</span>}
         </div>
@@ -90,14 +78,14 @@ function MetaCard({ meta }: { meta: Meta }) {
             <Button onClick={() => aportar.mutate()} disabled={!valorAporte || aportar.isPending}>
               OK
             </Button>
-            <button onClick={() => setShowAporte(false)} className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300">
+            <button onClick={() => setShowAporte(false)} className="text-c-muted hover:text-c-primary">
               <X size={18} />
             </button>
           </div>
         ) : (
           <button
             onClick={() => setShowAporte(true)}
-            className="flex items-center gap-1.5 text-sm text-violet-600 dark:text-violet-400 hover:underline"
+            className="flex items-center gap-1.5 text-sm text-accent-500 hover:underline"
           >
             <PlusCircle size={15} /> Registrar aporte
           </button>
@@ -121,8 +109,8 @@ function MetaForm({ onClose }: { onClose: () => void }) {
   return (
     <Card className="mb-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-gray-900 dark:text-slate-100">Nova Meta</h2>
-        <button onClick={onClose} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"><X size={18} /></button>
+        <h2 className="font-semibold text-c-primary">Nova Meta</h2>
+        <button onClick={onClose} className="text-c-muted hover:text-c-primary"><X size={18} /></button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
@@ -157,10 +145,10 @@ export default function MetasPage() {
 
   if (!activeProfile) {
     return (
-      <div className="p-6 flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full">
         <Card className="text-center max-w-sm w-full">
-          <p className="text-gray-500 dark:text-slate-400">
-            Selecione um perfil em <strong className="text-gray-900 dark:text-slate-200">Perfis</strong> para começar.
+          <p className="text-c-muted">
+            Selecione um perfil em <strong className="text-c-primary">Configurações</strong> para começar.
           </p>
         </Card>
       </div>
@@ -171,29 +159,23 @@ export default function MetasPage() {
   const emAndamento = metas.filter(m => m.percentual < 100)
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Metas de Economia</h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-            {emAndamento.length} em andamento · {concluidas.length} concluída{concluidas.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <Button onClick={() => setShowForm(s => !s)}>
-          <Plus size={16} className="inline mr-1" />Nova Meta
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Metas de Economia"
+        subtitle={`${emAndamento.length} em andamento · ${concluidas.length} concluída${concluidas.length !== 1 ? 's' : ''}`}
+        actions={<Button onClick={() => setShowForm(s => !s)}><Plus size={14} className="inline mr-1" />Nova Meta</Button>}
+      />
 
       {showForm && <MetaForm onClose={() => setShowForm(false)} />}
 
       {isLoading ? (
-        <p className="text-gray-500 dark:text-slate-400">Carregando…</p>
+        <p className="text-c-muted">Carregando…</p>
       ) : metas.length === 0 ? (
         <Card>
           <div className="text-center py-8">
-            <Target size={40} className="mx-auto text-gray-300 dark:text-slate-600 mb-3" />
-            <p className="text-gray-400 dark:text-slate-500">Nenhuma meta cadastrada.</p>
-            <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">Crie sua primeira meta de economia acima.</p>
+            <Target size={40} className="mx-auto text-c-muted mb-3" />
+            <p className="text-c-muted">Nenhuma meta cadastrada.</p>
+            <p className="text-sm text-c-muted mt-1">Crie sua primeira meta de economia acima.</p>
           </div>
         </Card>
       ) : (
@@ -205,7 +187,7 @@ export default function MetasPage() {
           )}
           {concluidas.length > 0 && (
             <>
-              <h2 className="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide">Concluídas</h2>
+              <h2 className="text-xs font-semibold text-c-muted uppercase tracking-widest">Concluídas</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {concluidas.map(m => <MetaCard key={m.id} meta={m} />)}
               </div>
