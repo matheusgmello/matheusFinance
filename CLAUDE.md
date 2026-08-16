@@ -94,7 +94,7 @@ com.matheusfinance/
 
 ### Segurança e Autenticação
 
-E-mail + senha + JWT. BCrypt para hash.
+Usuário + senha + JWT. BCrypt para hash. Sem e-mail — `Usuario.username` (V25, era `email`) é normalizado pra minúsculo no registro e no login, evita "Matheus" e "matheus" virarem contas diferentes. `Usuario` não tem campo de nome próprio; `Perfil.nome` (já existente, sempre obrigatório) é quem representa o nome de exibição — no registro, é seedado com o username como digitado (preserva a caixa), editável depois em Configurações.
 
 1. `POST /api/auth/register` — cria usuário + perfil, retorna JWT
 2. `POST /api/auth/login` — valida credenciais, retorna JWT

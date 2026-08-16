@@ -5,26 +5,26 @@ import { authApi } from '../../domains/auth/api'
 import { useAuth } from '../../shared/context/AuthContext'
 import { useProfile } from '../../shared/context/ProfileContext'
 import { setupAxiosInterceptors } from '../../core/api/axios'
-import { Lock, Mail } from 'lucide-react'
+import { Lock, User } from 'lucide-react'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
   const { setActiveProfile } = useProfile()
 
-  const [email, setEmail] = useState('')
+  const [usuario, setUsuario] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
 
   const loginMut = useMutation({
-    mutationFn: () => authApi.login(email, senha),
+    mutationFn: () => authApi.login(usuario, senha),
     onSuccess: (data) => {
       login(data.token, data.perfilId, data.perfilNome)
       setActiveProfile({ id: data.perfilId, nome: data.perfilNome, criadoEm: '' })
       setupAxiosInterceptors(data.perfilId, data.token)
       navigate('/', { replace: true })
     },
-    onError: (e: any) => setErro(e?.response?.data?.detail ?? 'E-mail ou senha incorretos.'),
+    onError: (e: any) => setErro(e?.response?.data?.detail ?? 'Usuário ou senha incorretos.'),
   })
 
   return (
@@ -42,12 +42,12 @@ export default function LoginPage() {
           <h2 className="font-semibold text-gray-900 dark:text-slate-100 mb-1">Entrar</h2>
 
           <div className="relative">
-            <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
+            <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
             <input
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={e => { setEmail(e.target.value); setErro('') }}
+              type="text"
+              placeholder="Usuário"
+              value={usuario}
+              onChange={e => { setUsuario(e.target.value); setErro('') }}
               className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent-500"
             />
           </div>
@@ -68,7 +68,7 @@ export default function LoginPage() {
 
           <button
             onClick={() => loginMut.mutate()}
-            disabled={loginMut.isPending || !email || !senha}
+            disabled={loginMut.isPending || !usuario || !senha}
             className="w-full py-2.5 rounded-xl bg-accent-500 hover:bg-accent-600 disabled:opacity-60 text-white font-semibold text-sm transition-colors"
           >
             {loginMut.isPending ? 'Entrando…' : 'Entrar'}
