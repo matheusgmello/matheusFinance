@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Bell, Target, LogOut, Settings, Calculator } from 'lucide-react'
+import { LayoutDashboard, Bell, Target, LogOut, Settings, Calculator, Upload } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useProfile } from '../../context/ProfileContext'
 import { useAuth } from '../../context/AuthContext'
@@ -32,10 +32,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const totalAlertas = vencimentos?.totalItens ?? 0
 
   const navItems = [
-    { to: '/',              icon: LayoutDashboard, label: 'Dashboard',     badge: totalAlertas },
-    { to: '/metas',         icon: Target,          label: 'Metas',         badge: 0 },
-    { to: '/calculadoras',  icon: Calculator,      label: 'Calculadoras',  badge: 0 },
-    { to: '/configuracoes', icon: Settings,        label: 'Configurações', badge: 0 },
+    { to: '/',               icon: LayoutDashboard, label: 'Dashboard',       badge: totalAlertas },
+    { to: '/fatura/importar', icon: Upload,          label: 'Importar Fatura', badge: 0 },
+    { to: '/metas',          icon: Target,          label: 'Metas',           badge: 0 },
+    { to: '/calculadoras',   icon: Calculator,      label: 'Calculadoras',    badge: 0 },
+    { to: '/configuracoes',  icon: Settings,        label: 'Configurações',   badge: 0 },
   ]
 
   return (

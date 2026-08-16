@@ -5,6 +5,7 @@ import DashboardPage from './pages/dashboard/DashboardPage'
 import ConfiguracoesPage from './pages/configuracoes/ConfiguracoesPage'
 import MetasPage from './pages/metas/MetasPage'
 import CalculadorasPage from './pages/calculadoras/CalculadorasPage'
+import ImportarFaturaPage from './pages/fatura/ImportarFaturaPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="categorias" element={<Navigate to="/" replace />} />
         <Route path="metas" element={<ErrorBoundary><MetasPage /></ErrorBoundary>} />
         <Route path="calculadoras" element={<ErrorBoundary><CalculadorasPage /></ErrorBoundary>} />
+        <Route path="fatura/importar" element={<ErrorBoundary><ImportarFaturaPage /></ErrorBoundary>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
